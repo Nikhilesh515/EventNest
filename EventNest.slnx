@@ -1,0 +1,8 @@
+<Solution>
+  <Folder Name="/Services/Auth/">
+    <Project Path="services/EventNest.AuthService/EventNest.AuthService.Domain/EventNest.AuthService.Domain.csproj" />
+    <Project Path="services/EventNest.AuthService/EventNest.AuthService.Application/EventNest.AuthService.Application.csproj" />
+    <Project Path="services/EventNest.AuthService/EventNest.AuthService.Infrastructure/EventNest.AuthService.Infrastructure.csproj" />
+    <Project Path="services/EventNest.AuthService/EventNest.AuthService.API/EventNest.AuthService.API.csproj" />
+  </Folder>
+</Solution>

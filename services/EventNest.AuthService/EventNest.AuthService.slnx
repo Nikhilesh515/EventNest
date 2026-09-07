@@ -1,0 +1,6 @@
+<Solution>
+  <Project Path="EventNest.AuthService.Domain/EventNest.AuthService.Domain.csproj" Id="7265e409-e8c8-4e1d-80bb-1a781f649b2a" />
+  <Project Path="EventNest.AuthService.Application/EventNest.AuthService.Application.csproj" Id="a1b2c3d4-e5f6-7890-abcd-ef1234567890" />
+  <Project Path="EventNest.AuthService.Infrastructure/EventNest.AuthService.Infrastructure.csproj" Id="b2c3d4e5-f6a7-8901-bcde-f12345678901" />
+  <Project Path="EventNest.AuthService.API/EventNest.AuthService.API.csproj" Id="c3d4e5f6-a7b8-9012-cdef-123456789012" />
+</Solution>
