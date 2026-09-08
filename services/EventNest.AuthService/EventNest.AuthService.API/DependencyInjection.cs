@@ -1,10 +1,13 @@
 using System.Text;
+using EventNest.AuthService.API.Authorization;
 using EventNest.AuthService.API.Middleware;
 using EventNest.AuthService.API.SeedData;
 using EventNest.AuthService.API.Services;
+using EventNest.AuthService.Application.Authorization;
 using EventNest.AuthService.Application.Interfaces;
 using EventNest.AuthService.Infrastructure.Data;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
@@ -54,7 +57,19 @@ public static class DependencyInjection
                 };
             });
 
-        services.AddAuthorization();
+        // Authorization — register a policy for every known permission
+        services.AddAuthorization(options =>
+        {
+            var allPermissions = PermissionGroups.All.SelectMany(g => g.Value);
+            foreach (var permission in allPermissions)
+            {
+                options.AddPolicy(permission, policy =>
+                    policy.Requirements.Add(new PermissionRequirement(permission)));
+            }
+        });
+
+        // Authorization handler
+        services.AddScoped<IAuthorizationHandler, PermissionHandler>();
 
         // CORS
         services.AddCors(options =>

@@ -1,4 +1,4 @@
-using EventNest.AuthService.Application.DTOs;
+using EventNest.AuthService.Application.DTOs.Permissions;
 
 namespace EventNest.AuthService.Application.Services.Interfaces;
 

@@ -1,5 +1,5 @@
 using EventNest.AuthService.Application.Authorization;
-using EventNest.AuthService.Application.DTOs;
+using EventNest.AuthService.Application.DTOs.Permissions;
 using EventNest.AuthService.Application.Interfaces;
 using EventNest.AuthService.Application.Services.Interfaces;
 using EventNest.AuthService.Domain.Entities;

@@ -2,30 +2,31 @@ namespace EventNest.AuthService.Application.Authorization;
 
 public static class EventNestPermissions
 {
+    // Groups
     public const string GroupEvents = "Events";
     public const string GroupTags = "Tags";
     public const string GroupRsvps = "RSVPs";
     public const string GroupUsers = "Users";
 
     // Events
-    public const string EventsView = "Events.View";
-    public const string EventsCreate = "Events.Create";
-    public const string EventsEdit = "Events.Edit";
-    public const string EventsDelete = "Events.Delete";
+    public const string EventsView = GroupEvents + ".View";
+    public const string EventsCreate = GroupEvents + ".Create";
+    public const string EventsEdit = GroupEvents + ".Edit";
+    public const string EventsDelete = GroupEvents + ".Delete";
 
     // Tags
-    public const string TagsView = "Tags.View";
-    public const string TagsCreate = "Tags.Create";
-    public const string TagsEdit = "Tags.Edit";
-    public const string TagsDelete = "Tags.Delete";
+    public const string TagsView = GroupTags + ".View";
+    public const string TagsCreate = GroupTags + ".Create";
+    public const string TagsEdit = GroupTags + ".Edit";
+    public const string TagsDelete = GroupTags + ".Delete";
 
     // RSVPs
-    public const string RsvpsView = "RSVPs.View";
-    public const string RsvpsCreate = "RSVPs.Create";
-    public const string RsvpsManage = "RSVPs.Manage";
-    public const string RsvpsCancel = "RSVPs.Cancel";
+    public const string RsvpsView = GroupRsvps + ".View";
+    public const string RsvpsCreate = GroupRsvps + ".Create";
+    public const string RsvpsManage = GroupRsvps + ".Manage";
+    public const string RsvpsCancel = GroupRsvps + ".Cancel";
 
     // Users
-    public const string UsersView = "Users.View";
-    public const string UsersManage = "Users.Manage";
+    public const string UsersView = GroupUsers + ".View";
+    public const string UsersManage = GroupUsers + ".Manage";
 }

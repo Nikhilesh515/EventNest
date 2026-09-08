@@ -1,6 +1,6 @@
 using System.Net;
 using System.Text.Json;
-using EventNest.AuthService.Application.DTOs;
+using EventNest.AuthService.Application.DTOs.Common;
 using EventNest.AuthService.Domain.Exceptions;
 
 namespace EventNest.AuthService.API.Middleware;
@@ -62,7 +62,7 @@ public class GlobalExceptionHandlerMiddleware
             _logger.LogError(exception, "Unhandled exception occurred.");
         }
 
-        var apiResponse = ApiResponse<object>.Fail(
+        var apiResponse = ApiResponseDto<object>.Fail(
             (int)statusCode,
             message,
             errors);

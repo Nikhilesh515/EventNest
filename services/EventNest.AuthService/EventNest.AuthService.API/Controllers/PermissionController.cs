@@ -1,5 +1,6 @@
 using EventNest.AuthService.Application.Authorization;
-using EventNest.AuthService.Application.DTOs;
+using EventNest.AuthService.Application.DTOs.Common;
+using EventNest.AuthService.Application.DTOs.Permissions;
 using EventNest.AuthService.Application.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -32,35 +33,39 @@ public class PermissionController : ControllerBase
             }
         }
 
-        return Ok(ApiResponse<List<PermissionDto>>.Ok(permissions));
+        return Ok(ApiResponseDto<List<PermissionDto>>.Ok(permissions));
     }
 
     [HttpGet("user/{userId:guid}")]
+    [Authorize(EventNestPermissions.UsersView)]
     public async Task<IActionResult> GetUserPermissions(Guid userId)
     {
         var permissions = await _permissionService.GetUserPermissionsAsync(userId);
-        return Ok(ApiResponse<IReadOnlyList<PermissionDto>>.Ok(permissions));
+        return Ok(ApiResponseDto<IReadOnlyList<PermissionDto>>.Ok(permissions));
     }
 
     [HttpPost("grant")]
-    public async Task<IActionResult> Grant([FromBody] GrantPermissionRequest request)
+    [Authorize(EventNestPermissions.UsersManage)]
+    public async Task<IActionResult> Grant([FromBody] GrantPermissionRequestDto request)
     {
         var result = await _permissionService.GrantAsync(request.UserId, request.PermissionName, request.ExpiresAt);
-        return Ok(ApiResponse<PermissionDto>.Ok(result));
+        return Ok(ApiResponseDto<PermissionDto>.Ok(result));
     }
 
     [HttpPost("revoke")]
-    public async Task<IActionResult> Revoke([FromBody] RevokePermissionRequest request)
+    [Authorize(EventNestPermissions.UsersManage)]
+    public async Task<IActionResult> Revoke([FromBody] RevokePermissionRequestDto request)
     {
         await _permissionService.RevokeAsync(request.UserId, request.PermissionName);
         return NoContent();
     }
 
     [HttpGet("check")]
+    [Authorize(EventNestPermissions.UsersView)]
     public async Task<IActionResult> Check([FromQuery] Guid userId, [FromQuery] string permission)
     {
         var result = await _permissionService.CheckAsync(userId, permission);
-        return Ok(ApiResponse<bool>.Ok(result));
+        return Ok(ApiResponseDto<bool>.Ok(result));
     }
 
     private static string GetDisplayName(string permissionName)
