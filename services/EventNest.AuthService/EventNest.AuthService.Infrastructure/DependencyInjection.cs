@@ -19,6 +19,7 @@ public static class DependencyInjection
         // Repositories
         services.AddScoped<IUserRepository, UserRepository>();
         services.AddScoped<IRoleRepository, RoleRepository>();
+        services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
 
         // Services
         services.AddScoped<IJwtTokenService, JwtTokenService>();
@@ -26,11 +27,12 @@ public static class DependencyInjection
         services.AddScoped<IPermissionStore, PermissionStore>();
 
         // Cache — Redis optional, falls back to in-memory
-        if (configuration.GetConnectionString("Redis") is not null)
+        var redisConnection = configuration.GetConnectionString("Redis");
+        if (!string.IsNullOrEmpty(redisConnection))
         {
             services.AddStackExchangeRedisCache(options =>
             {
-                options.Configuration = configuration.GetConnectionString("Redis");
+                options.Configuration = redisConnection;
             });
             services.AddSingleton<ICacheService, RedisCacheService>();
         }

@@ -1,0 +1,63 @@
+syntax = "proto3";
+option csharp_namespace = "EventNest.AuthService.API.Grpc";
+
+package auth;
+
+service AuthService {
+  rpc GetUser (GetUserRequest) returns (GetUserResponse);
+  rpc GetUsers (GetUsersRequest) returns (GetUsersResponse);
+  rpc CheckPermission (CheckPermissionRequest) returns (CheckPermissionResponse);
+  rpc ValidateToken (ValidateTokenRequest) returns (ValidateTokenResponse);
+  rpc GetUserPermissions (GetUserPermissionsRequest) returns (GetUserPermissionsResponse);
+}
+
+message GetUserRequest {
+  string user_id = 1;
+}
+
+message GetUserResponse {
+  string user_id = 1;
+  string email = 2;
+  string display_name = 3;
+  string role_name = 4;
+}
+
+message GetUsersRequest {
+  repeated string user_ids = 1;
+}
+
+message GetUsersResponse {
+  repeated GetUserResponse users = 1;
+}
+
+message CheckPermissionRequest {
+  string user_id = 1;
+  string permission = 2;
+  string resource_id = 3;
+  string resource_type = 4;
+}
+
+message CheckPermissionResponse {
+  bool allowed = 1;
+  string reason = 2;
+}
+
+message ValidateTokenRequest {
+  string token = 1;
+}
+
+message ValidateTokenResponse {
+  bool valid = 1;
+  string user_id = 2;
+  repeated string permissions = 3;
+  string error = 4;
+}
+
+message GetUserPermissionsRequest {
+  string user_id = 1;
+}
+
+message GetUserPermissionsResponse {
+  string user_id = 1;
+  repeated string permissions = 2;
+}

@@ -1,11 +1,13 @@
 using EventNest.AuthService.Application.Authorization;
 using EventNest.AuthService.Application.DTOs;
 using EventNest.AuthService.Application.Services.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace EventNest.AuthService.API.Controllers;
 
 [ApiController]
+[Authorize]
 [Route("api/permissions")]
 public class PermissionController : ControllerBase
 {

@@ -10,6 +10,7 @@ public class AuthService : IAuthService
 {
     private readonly IUserRepository _userRepository;
     private readonly IRoleRepository _roleRepository;
+    private readonly IRefreshTokenRepository _refreshTokenRepository;
     private readonly IJwtTokenService _jwtTokenService;
     private readonly IPasswordHasher _passwordHasher;
     private readonly IPermissionStore _permissionStore;
@@ -17,12 +18,14 @@ public class AuthService : IAuthService
     public AuthService(
         IUserRepository userRepository,
         IRoleRepository roleRepository,
+        IRefreshTokenRepository refreshTokenRepository,
         IJwtTokenService jwtTokenService,
         IPasswordHasher passwordHasher,
         IPermissionStore permissionStore)
     {
         _userRepository = userRepository;
         _roleRepository = roleRepository;
+        _refreshTokenRepository = refreshTokenRepository;
         _jwtTokenService = jwtTokenService;
         _passwordHasher = passwordHasher;
         _permissionStore = permissionStore;
@@ -45,11 +48,18 @@ public class AuthService : IAuthService
 
         var permissions = await _permissionStore.GetUserPermissionsAsync(user.Id);
         var accessToken = _jwtTokenService.GenerateAccessToken(user, permissions);
-        var refreshToken = _jwtTokenService.GenerateRefreshToken();
+        var refreshTokenValue = _jwtTokenService.GenerateRefreshToken();
+
+        var refreshToken = RefreshToken.Create(
+            refreshTokenValue,
+            DateTime.UtcNow.AddDays(30),
+            "system",
+            user.Id);
+        await _refreshTokenRepository.AddAsync(refreshToken);
 
         return new AuthResponseDto(
             accessToken,
-            refreshToken,
+            refreshTokenValue,
             3600,
             new UserDto(user.Id, user.Email, user.DisplayName, defaultRole.Name, user.IsActive));
     }
@@ -71,46 +81,61 @@ public class AuthService : IAuthService
 
         var permissions = await _permissionStore.GetUserPermissionsAsync(user.Id);
         var accessToken = _jwtTokenService.GenerateAccessToken(user, permissions);
-        var refreshToken = _jwtTokenService.GenerateRefreshToken();
+        var refreshTokenValue = _jwtTokenService.GenerateRefreshToken();
+
+        var refreshToken = RefreshToken.Create(
+            refreshTokenValue,
+            DateTime.UtcNow.AddDays(30),
+            "system",
+            user.Id);
+        await _refreshTokenRepository.AddAsync(refreshToken);
 
         return new AuthResponseDto(
             accessToken,
-            refreshToken,
+            refreshTokenValue,
             3600,
             new UserDto(user.Id, user.Email, user.DisplayName, roleName, user.IsActive));
     }
 
     public async Task<AuthResponseDto> RefreshTokenAsync(string refreshToken)
     {
-        var userId = _jwtTokenService.GetUserIdFromToken(refreshToken);
-        if (userId is null)
+        var storedToken = await _refreshTokenRepository.GetByTokenAsync(refreshToken);
+        if (storedToken is null || !storedToken.IsActive)
             throw new UnauthorizedException("Invalid refresh token.");
 
-        var user = await _userRepository.GetByIdAsync(userId.Value);
+        var user = await _userRepository.GetByIdAsync(storedToken.UserId);
         if (user is null)
             throw new NotFoundException("User not found.");
 
         if (!user.IsActive)
             throw new UnauthorizedException("User account is deactivated.");
 
+        // Revoke old refresh token
+        await _refreshTokenRepository.RevokeAsync(refreshToken, "system");
+
         var role = await _roleRepository.GetByIdAsync(user.RoleId);
         var roleName = role?.Name ?? "User";
 
         var permissions = await _permissionStore.GetUserPermissionsAsync(user.Id);
         var newAccessToken = _jwtTokenService.GenerateAccessToken(user, permissions);
-        var newRefreshToken = _jwtTokenService.GenerateRefreshToken();
+        var newRefreshTokenValue = _jwtTokenService.GenerateRefreshToken();
+
+        var newRefreshToken = RefreshToken.Create(
+            newRefreshTokenValue,
+            DateTime.UtcNow.AddDays(30),
+            "system",
+            user.Id);
+        await _refreshTokenRepository.AddAsync(newRefreshToken);
 
         return new AuthResponseDto(
             newAccessToken,
-            newRefreshToken,
+            newRefreshTokenValue,
             3600,
             new UserDto(user.Id, user.Email, user.DisplayName, roleName, user.IsActive));
     }
 
-    public Task LogoutAsync(string refreshToken)
+    public async Task LogoutAsync(string refreshToken)
     {
-        // In a real implementation, we would revoke the refresh token in the database
-        // For now, this is a no-op as refresh tokens are not stored in our current schema
-        return Task.CompletedTask;
+        await _refreshTokenRepository.RevokeAsync(refreshToken, "system");
     }
 }

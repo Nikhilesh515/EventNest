@@ -1,10 +1,13 @@
+using System.Security.Claims;
 using EventNest.AuthService.Application.DTOs;
 using EventNest.AuthService.Application.Services.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace EventNest.AuthService.API.Controllers;
 
 [ApiController]
+[Authorize]
 [Route("api/users")]
 public class UserController : ControllerBase
 {
@@ -16,11 +19,18 @@ public class UserController : ControllerBase
     }
 
     [HttpGet("me")]
-    public async Task<IActionResult> GetCurrentUser()
+    public IActionResult GetCurrentUser()
     {
-        // In a real implementation, get user ID from JWT claims
-        // For now, return a placeholder
-        return Ok(ApiResponse<object>.Fail(401, "Authentication required."));
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        var email = User.FindFirstValue(ClaimTypes.Email);
+        var name = User.FindFirstValue(ClaimTypes.Name);
+        var role = User.FindFirstValue(ClaimTypes.Role);
+
+        if (string.IsNullOrEmpty(userId) || !Guid.TryParse(userId, out var id))
+            return Unauthorized(ApiResponse<object>.Fail(401, "Invalid token."));
+
+        var user = new UserDto(id, email ?? "", name ?? "", role ?? "User", true);
+        return Ok(ApiResponse<UserDto>.Ok(user));
     }
 
     [HttpGet("{id:guid}")]

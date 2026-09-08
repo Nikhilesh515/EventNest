@@ -55,7 +55,7 @@ public class PermissionStore : IPermissionStore
 
         // Get user-level overrides
         var grants = await _context.PermissionGrants
-            .Where(g => g.UserId == userId && g.IsValid)
+            .Where(g => g.UserId == userId && (!g.ExpiresAt.HasValue || g.ExpiresAt.Value > DateTime.UtcNow))
             .ToListAsync();
 
         foreach (var grant in grants)
