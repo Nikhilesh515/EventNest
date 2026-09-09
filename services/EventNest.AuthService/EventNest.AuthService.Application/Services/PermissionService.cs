@@ -1,4 +1,4 @@
-using EventNest.AuthService.Application.Authorization;
+using EventNest.Shared.Application.Authorization;
 using EventNest.AuthService.Application.DTOs.Permissions;
 using EventNest.AuthService.Application.Interfaces;
 using EventNest.AuthService.Application.Services.Interfaces;
@@ -84,20 +84,20 @@ public class PermissionService : IPermissionService
 
     private static bool IsValidPermission(string permissionName)
     {
-        return EventNestPermissions.EventsView == permissionName ||
-               EventNestPermissions.EventsCreate == permissionName ||
-               EventNestPermissions.EventsEdit == permissionName ||
-               EventNestPermissions.EventsDelete == permissionName ||
-               EventNestPermissions.TagsView == permissionName ||
-               EventNestPermissions.TagsCreate == permissionName ||
-               EventNestPermissions.TagsEdit == permissionName ||
-               EventNestPermissions.TagsDelete == permissionName ||
-               EventNestPermissions.RsvpsView == permissionName ||
-               EventNestPermissions.RsvpsCreate == permissionName ||
-               EventNestPermissions.RsvpsManage == permissionName ||
-               EventNestPermissions.RsvpsCancel == permissionName ||
-               EventNestPermissions.UsersView == permissionName ||
-               EventNestPermissions.UsersManage == permissionName;
+        return EventNestPermissions.Events.View == permissionName ||
+               EventNestPermissions.Events.Create == permissionName ||
+               EventNestPermissions.Events.Edit == permissionName ||
+               EventNestPermissions.Events.Delete == permissionName ||
+               EventNestPermissions.Tags.View == permissionName ||
+               EventNestPermissions.Tags.Create == permissionName ||
+               EventNestPermissions.Tags.Edit == permissionName ||
+               EventNestPermissions.Tags.Delete == permissionName ||
+               EventNestPermissions.RSVPs.View == permissionName ||
+               EventNestPermissions.RSVPs.Create == permissionName ||
+               EventNestPermissions.RSVPs.Manage == permissionName ||
+               EventNestPermissions.RSVPs.Cancel == permissionName ||
+               EventNestPermissions.Users.View == permissionName ||
+               EventNestPermissions.Users.Manage == permissionName;
     }
 
     private static (string Group, string DisplayName) GetPermissionInfo(string permissionName)

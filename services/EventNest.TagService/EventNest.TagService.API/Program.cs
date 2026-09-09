@@ -1,23 +1,31 @@
+using EventNest.TagService.API;
+using EventNest.TagService.API.Middleware;
+using EventNest.TagService.API.Services;
+using EventNest.TagService.Application;
+using EventNest.TagService.Infrastructure;
+
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-
-builder.Services.AddControllers();
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
-builder.Services.AddOpenApi();
+builder.Services.AddApplication();
+builder.Services.AddInfrastructure(builder.Configuration);
+builder.Services.AddApi(builder.Configuration);
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
-    app.MapOpenApi();
+    app.UseSwagger();
+    app.UseSwaggerUI();
 }
 
-app.UseHttpsRedirection();
+await app.MigrateAndSeed();
 
+app.UseMiddleware<GlobalExceptionHandlerMiddleware>();
+
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+app.MapGrpcService<TagGrpcService>();
 
 app.Run();

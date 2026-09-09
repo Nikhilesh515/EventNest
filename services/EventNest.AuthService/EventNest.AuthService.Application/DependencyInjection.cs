@@ -1,5 +1,6 @@
 using EventNest.AuthService.Application.Authorization;
 using EventNest.AuthService.Application.Services.Interfaces;
+using EventNest.Shared.Application.Authorization;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace EventNest.AuthService.Application;

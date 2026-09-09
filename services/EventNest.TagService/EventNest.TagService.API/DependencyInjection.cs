@@ -1,24 +1,21 @@
 using System.Text;
-using EventNest.AuthService.API.Authorization;
-using EventNest.AuthService.API.Middleware;
-using EventNest.AuthService.API.SeedData;
-using EventNest.AuthService.API.Services;
+using EventNest.TagService.API.Authorization;
+using EventNest.TagService.API.SeedData;
+using EventNest.TagService.API.Services;
+using EventNest.TagService.Infrastructure.Data;
 using EventNest.Shared.Application.Authorization;
-using EventNest.AuthService.Application.Interfaces;
-using EventNest.AuthService.Infrastructure.Data;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
 
-namespace EventNest.AuthService.API;
+namespace EventNest.TagService.API;
 
 public static class DependencyInjection
 {
     public static IServiceCollection AddApi(this IServiceCollection services, IConfiguration configuration)
     {
-        // Controllers + Swagger
         services.AddControllers();
         services.AddEndpointsApiExplorer();
         services.AddSwaggerGen(options =>
@@ -39,7 +36,6 @@ public static class DependencyInjection
             });
         });
 
-        // JWT Authentication
         services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             .AddJwtBearer(options =>
             {
@@ -57,7 +53,6 @@ public static class DependencyInjection
                 };
             });
 
-        // Authorization — register a policy for every known permission
         services.AddAuthorization(options =>
         {
             var allPermissions = EventNestPermissions.All.SelectMany(g => g.Value);
@@ -68,22 +63,8 @@ public static class DependencyInjection
             }
         });
 
-        // Authorization handler
-        services.AddScoped<IAuthorizationHandler, PermissionHandler>();
+        services.AddScoped<IAuthorizationHandler, TagPermissionHandler>();
 
-        // CORS
-        services.AddCors(options =>
-        {
-            options.AddPolicy("AllowFrontend", policy =>
-            {
-                policy.WithOrigins("http://localhost:3000", "https://localhost:3000")
-                      .AllowAnyMethod()
-                      .AllowAnyHeader()
-                      .AllowCredentials();
-            });
-        });
-
-        // gRPC
         services.AddGrpc();
 
         return services;
@@ -93,33 +74,9 @@ public static class DependencyInjection
     {
         using var scope = app.Services.CreateScope();
 
-        var context = scope.ServiceProvider.GetRequiredService<AuthDbContext>();
+        var context = scope.ServiceProvider.GetRequiredService<TagDbContext>();
         await context.Database.MigrateAsync();
 
-        var passwordHasher = scope.ServiceProvider.GetRequiredService<IPasswordHasher>();
-        await RoleSeedData.SeedAsync(context);
-        await AdminSeedData.SeedAsync(context, passwordHasher);
-    }
-
-    public static void UseApiMiddleware(this WebApplication app)
-    {
-        if (app.Environment.IsDevelopment())
-        {
-            app.UseSwagger();
-            app.UseSwaggerUI();
-        }
-
-        app.UseMiddleware<GlobalExceptionHandlerMiddleware>();
-
-        app.UseHttpsRedirection();
-
-        app.UseCors("AllowFrontend");
-
-        app.UseAuthentication();
-        app.UseAuthorization();
-
-        app.MapControllers();
-
-        app.MapGrpcService<AuthGrpcService>();
+        await TagSeedData.SeedAsync(context);
     }
 }

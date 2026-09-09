@@ -1,4 +1,4 @@
-using EventNest.AuthService.Application.Authorization;
+using EventNest.Shared.Application.Authorization;
 using EventNest.AuthService.Application.Interfaces;
 using EventNest.AuthService.Domain.Entities;
 using EventNest.AuthService.Infrastructure.Data;
@@ -42,7 +42,7 @@ public class PermissionStore : IPermissionStore
 
         // Get role defaults
         var permissions = new List<string>();
-        if (PermissionGroups.RoleDefaults.TryGetValue(role.Name, out var rolePerms))
+        if (EventNestPermissions.RoleDefaults.TryGetValue(role.Name, out var rolePerms))
         {
             permissions.AddRange(rolePerms);
         }
@@ -50,7 +50,7 @@ public class PermissionStore : IPermissionStore
         // Admin and SuperAdmin get all permissions
         if (role.Name == "Admin" || role.Name == "SuperAdmin")
         {
-            permissions = PermissionGroups.All.SelectMany(g => g.Value).Distinct().ToList();
+            permissions = EventNestPermissions.All.SelectMany(g => g.Value).Distinct().ToList();
         }
 
         // Get user-level overrides

@@ -1,6 +1,6 @@
 using System.Security.Claims;
-using EventNest.AuthService.Application.Authorization;
 using EventNest.AuthService.Application.Interfaces;
+using EventNest.Shared.Application.Authorization;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.Logging;
 

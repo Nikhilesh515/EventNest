@@ -1,4 +1,5 @@
 using EventNest.AuthService.Application.Interfaces;
+using EventNest.Shared.Application.Authorization;
 
 namespace EventNest.AuthService.Application.Authorization;
 
@@ -42,7 +43,7 @@ public class PermissionChecker : IPermissionChecker
 
         // Get role defaults
         var permissions = new List<string>();
-        if (PermissionGroups.RoleDefaults.TryGetValue(role.Name, out var rolePerms))
+        if (EventNestPermissions.RoleDefaults.TryGetValue(role.Name, out var rolePerms))
         {
             permissions.AddRange(rolePerms);
         }
@@ -50,7 +51,7 @@ public class PermissionChecker : IPermissionChecker
         // Admin and SuperAdmin get all permissions
         if (role.Name == "Admin" || role.Name == "SuperAdmin")
         {
-            permissions = PermissionGroups.All.SelectMany(g => g.Value).Distinct().ToList();
+            permissions = EventNestPermissions.All.SelectMany(g => g.Value).Distinct().ToList();
         }
 
         // Get user-level overrides

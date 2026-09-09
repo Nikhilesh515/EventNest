@@ -6,4 +6,8 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\..\EventNest.Shared\EventNest.Shared.Domain\EventNest.Shared.Domain.csproj" />
+  </ItemGroup>
+
 </Project>

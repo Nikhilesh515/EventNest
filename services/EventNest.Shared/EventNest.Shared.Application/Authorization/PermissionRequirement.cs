@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 
-namespace EventNest.AuthService.Application.Authorization;
+namespace EventNest.Shared.Application.Authorization;
 
 public sealed class PermissionRequirement : IAuthorizationRequirement
 {

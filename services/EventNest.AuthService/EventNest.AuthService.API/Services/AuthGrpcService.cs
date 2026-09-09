@@ -1,7 +1,8 @@
-using EventNest.Shared.Infrastructure.Grpc;
 using EventNest.AuthService.Application.Authorization;
 using EventNest.AuthService.Application.Interfaces;
 using EventNest.AuthService.Application.Services.Interfaces;
+using EventNest.Shared.Application.Authorization;
+using EventNest.Shared.Infrastructure.Grpc;
 using Grpc.Core;
 
 namespace EventNest.AuthService.API.Services;

@@ -1,5 +1,5 @@
 using System.Security.Claims;
-using EventNest.AuthService.Application.Authorization;
+using EventNest.Shared.Application.Authorization;
 using EventNest.Shared.Application.DTOs;
 using EventNest.AuthService.Application.DTOs.Users;
 using EventNest.AuthService.Application.Services.Interfaces;
@@ -36,7 +36,7 @@ public class UserController : ControllerBase
     }
 
     [HttpGet("{id:guid}")]
-    [Authorize(EventNestPermissions.UsersView)]
+    [Authorize(EventNestPermissions.Users.View)]
     public async Task<IActionResult> GetById(Guid id)
     {
         var user = await _userService.GetByIdAsync(id);
@@ -47,7 +47,7 @@ public class UserController : ControllerBase
     }
 
     [HttpGet]
-    [Authorize(EventNestPermissions.UsersView)]
+    [Authorize(EventNestPermissions.Users.View)]
     public async Task<IActionResult> GetAll([FromQuery] int page = 1, [FromQuery] int pageSize = 20)
     {
         var users = await _userService.GetAllAsync(page, pageSize);
@@ -55,7 +55,7 @@ public class UserController : ControllerBase
     }
 
     [HttpPut("{id:guid}")]
-    [Authorize(EventNestPermissions.UsersManage)]
+    [Authorize(EventNestPermissions.Users.Manage)]
     public async Task<IActionResult> Update(Guid id, [FromBody] UpdateUserRequestDto request)
     {
         var user = await _userService.UpdateAsync(id, request.DisplayName);
@@ -63,7 +63,7 @@ public class UserController : ControllerBase
     }
 
     [HttpDelete("{id:guid}")]
-    [Authorize(EventNestPermissions.UsersManage)]
+    [Authorize(EventNestPermissions.Users.Manage)]
     public async Task<IActionResult> Deactivate(Guid id)
     {
         await _userService.DeactivateAsync(id);

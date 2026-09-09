@@ -7,7 +7,19 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.10" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="10.2.3" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.0" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.11">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\EventNest.TagService.Application\EventNest.TagService.Application.csproj" />
+    <ProjectReference Include="..\EventNest.TagService.Infrastructure\EventNest.TagService.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\EventNest.Shared\EventNest.Shared.Application\EventNest.Shared.Application.csproj" />
+    <ProjectReference Include="..\..\EventNest.Shared\EventNest.Shared.Infrastructure\EventNest.Shared.Infrastructure.csproj" />
   </ItemGroup>
 
 </Project>

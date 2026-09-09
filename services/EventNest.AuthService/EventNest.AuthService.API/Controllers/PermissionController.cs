@@ -1,4 +1,4 @@
-using EventNest.AuthService.Application.Authorization;
+using EventNest.Shared.Application.Authorization;
 using EventNest.Shared.Application.DTOs;
 using EventNest.AuthService.Application.DTOs.Permissions;
 using EventNest.AuthService.Application.Services.Interfaces;
@@ -24,7 +24,7 @@ public class PermissionController : ControllerBase
     {
         var permissions = new List<PermissionDto>();
 
-        foreach (var group in PermissionGroups.All)
+        foreach (var group in EventNestPermissions.All)
         {
             foreach (var permissionName in group.Value)
             {
@@ -37,7 +37,7 @@ public class PermissionController : ControllerBase
     }
 
     [HttpGet("user/{userId:guid}")]
-    [Authorize(EventNestPermissions.UsersView)]
+    [Authorize(EventNestPermissions.Users.View)]
     public async Task<IActionResult> GetUserPermissions(Guid userId)
     {
         var permissions = await _permissionService.GetUserPermissionsAsync(userId);
@@ -45,7 +45,7 @@ public class PermissionController : ControllerBase
     }
 
     [HttpPost("grant")]
-    [Authorize(EventNestPermissions.UsersManage)]
+    [Authorize(EventNestPermissions.Users.Manage)]
     public async Task<IActionResult> Grant([FromBody] GrantPermissionRequestDto request)
     {
         var result = await _permissionService.GrantAsync(request.UserId, request.PermissionName, request.ExpiresAt);
@@ -53,7 +53,7 @@ public class PermissionController : ControllerBase
     }
 
     [HttpPost("revoke")]
-    [Authorize(EventNestPermissions.UsersManage)]
+    [Authorize(EventNestPermissions.Users.Manage)]
     public async Task<IActionResult> Revoke([FromBody] RevokePermissionRequestDto request)
     {
         await _permissionService.RevokeAsync(request.UserId, request.PermissionName);
@@ -61,7 +61,7 @@ public class PermissionController : ControllerBase
     }
 
     [HttpGet("check")]
-    [Authorize(EventNestPermissions.UsersView)]
+    [Authorize(EventNestPermissions.Users.View)]
     public async Task<IActionResult> Check([FromQuery] Guid userId, [FromQuery] string permission)
     {
         var result = await _permissionService.CheckAsync(userId, permission);
