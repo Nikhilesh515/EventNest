@@ -17,4 +17,10 @@
     <Project Path="services/EventNest.TagService/EventNest.TagService.Domain/EventNest.TagService.Domain.csproj" Id="04e83e5b-2cc7-4e6c-85ec-92969e271abd" />
     <Project Path="services/EventNest.TagService/EventNest.TagService.Infrastructure/EventNest.TagService.Infrastructure.csproj" />
   </Folder>
+  <Folder Name="/Services/EventNest.EventService/">
+    <Project Path="services/EventNest.EventService/EventNest.EventService.API/EventNest.EventService.API.csproj" />
+    <Project Path="services/EventNest.EventService/EventNest.EventService.Application/EventNest.EventService.Application.csproj" />
+    <Project Path="services/EventNest.EventService/EventNest.EventService.Domain/EventNest.EventService.Domain.csproj" />
+    <Project Path="services/EventNest.EventService/EventNest.EventService.Infrastructure/EventNest.EventService.Infrastructure.csproj" />
+  </Folder>
 </Solution>

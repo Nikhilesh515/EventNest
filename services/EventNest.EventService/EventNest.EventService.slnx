@@ -1,0 +1,6 @@
+<Solution>
+  <Project Path="EventNest.EventService.API/EventNest.EventService.API.csproj" />
+  <Project Path="EventNest.EventService.Application/EventNest.EventService.Application.csproj" />
+  <Project Path="EventNest.EventService.Domain/EventNest.EventService.Domain.csproj" />
+  <Project Path="EventNest.EventService.Infrastructure/EventNest.EventService.Infrastructure.csproj" />
+</Solution>
