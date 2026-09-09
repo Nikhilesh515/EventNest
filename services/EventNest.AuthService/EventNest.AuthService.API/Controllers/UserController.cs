@@ -1,6 +1,6 @@
 using System.Security.Claims;
 using EventNest.AuthService.Application.Authorization;
-using EventNest.AuthService.Application.DTOs.Common;
+using EventNest.Shared.Application.DTOs;
 using EventNest.AuthService.Application.DTOs.Users;
 using EventNest.AuthService.Application.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;

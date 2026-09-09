@@ -13,6 +13,8 @@
 
   <ItemGroup>
     <ProjectReference Include="..\EventNest.AuthService.Domain\EventNest.AuthService.Domain.csproj" />
+    <ProjectReference Include="..\..\EventNest.Shared\EventNest.Shared.Domain\EventNest.Shared.Domain.csproj" />
+    <ProjectReference Include="..\..\EventNest.Shared\EventNest.Shared.Application\EventNest.Shared.Application.csproj" />
   </ItemGroup>
 
 </Project>

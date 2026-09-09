@@ -1,3 +1,5 @@
+using EventNest.Shared.Domain.Entities;
+
 namespace EventNest.AuthService.Domain.Entities;
 
 public class PermissionGrant : BaseEntity

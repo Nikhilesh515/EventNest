@@ -1,0 +1,27 @@
+syntax = "proto3";
+option csharp_namespace = "EventNest.Shared.Infrastructure.Grpc";
+
+package tag;
+
+service TagService {
+  rpc GetTag (GetTagRequest) returns (GetTagResponse);
+  rpc GetTags (GetTagsRequest) returns (GetTagsResponse);
+}
+
+message GetTagRequest {
+  string tag_id = 1;
+}
+
+message GetTagResponse {
+  string tag_id = 1;
+  string name = 2;
+  string color = 3;
+}
+
+message GetTagsRequest {
+  repeated string tag_ids = 1;
+}
+
+message GetTagsResponse {
+  repeated GetTagResponse tags = 1;
+}

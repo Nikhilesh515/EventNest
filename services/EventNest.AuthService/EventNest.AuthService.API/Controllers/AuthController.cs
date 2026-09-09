@@ -1,5 +1,5 @@
 using EventNest.AuthService.Application.DTOs.Auth;
-using EventNest.AuthService.Application.DTOs.Common;
+using EventNest.Shared.Application.DTOs;
 using EventNest.AuthService.Application.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 

@@ -1,4 +1,4 @@
-namespace EventNest.AuthService.Domain.Exceptions;
+namespace EventNest.Shared.Domain.Exceptions;
 
 public class NotFoundException : Exception
 {

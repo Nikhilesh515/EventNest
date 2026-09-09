@@ -16,7 +16,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\EventNest.Shared\EventNest.Shared.csproj" />
+    <ProjectReference Include="..\..\EventNest.Shared\EventNest.Shared.Infrastructure\EventNest.Shared.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\EventNest.Shared\EventNest.Shared.Domain\EventNest.Shared.Domain.csproj" />
+    <ProjectReference Include="..\..\EventNest.Shared\EventNest.Shared.Application\EventNest.Shared.Application.csproj" />
     <ProjectReference Include="..\EventNest.AuthService.Application\EventNest.AuthService.Application.csproj" />
     <ProjectReference Include="..\EventNest.AuthService.Infrastructure\EventNest.AuthService.Infrastructure.csproj" />
     <ProjectReference Include="..\EventNest.AuthService.Domain\EventNest.AuthService.Domain.csproj" />

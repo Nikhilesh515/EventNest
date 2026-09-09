@@ -7,6 +7,8 @@
     <Project Path="services/EventNest.AuthService/EventNest.AuthService.Infrastructure/EventNest.AuthService.Infrastructure.csproj" />
   </Folder>
   <Folder Name="/Services/EventNest.Shared/">
-    <Project Path="services/EventNest.Shared/EventNest.Shared.csproj" Id="8bd2e34b-b97d-4469-b6bc-27f4d2dcf2b9" />
+    <Project Path="services/EventNest.Shared/EventNest.Shared.Application/EventNest.Shared.Application.csproj" Id="6a3a073d-eae5-4da1-b251-33af2b7d1ac6" />
+    <Project Path="services/EventNest.Shared/EventNest.Shared.Domain/EventNest.Shared.Domain.csproj" Id="723e1a8b-4e36-49d6-87b3-5afe76773016" />
+    <Project Path="services/EventNest.Shared/EventNest.Shared.Infrastructure/EventNest.Shared.Infrastructure.csproj" Id="782d1fde-ee41-482f-b3a2-604c8c9f0cc4" />
   </Folder>
 </Solution>

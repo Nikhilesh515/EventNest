@@ -1,4 +1,4 @@
-namespace EventNest.AuthService.Application.DTOs.Common;
+namespace EventNest.Shared.Application.DTOs;
 
 public class ApiResponseDto<T>
 {

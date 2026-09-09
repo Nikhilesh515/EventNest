@@ -1,4 +1,4 @@
-namespace EventNest.AuthService.Domain.Entities;
+namespace EventNest.Shared.Domain.Entities;
 
 public abstract class BaseEntity
 {

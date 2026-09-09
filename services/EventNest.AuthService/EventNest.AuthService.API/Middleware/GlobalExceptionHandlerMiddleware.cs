@@ -1,7 +1,7 @@
 using System.Net;
 using System.Text.Json;
-using EventNest.AuthService.Application.DTOs.Common;
-using EventNest.AuthService.Domain.Exceptions;
+using EventNest.Shared.Application.DTOs;
+using EventNest.Shared.Domain.Exceptions;
 
 namespace EventNest.AuthService.API.Middleware;
 

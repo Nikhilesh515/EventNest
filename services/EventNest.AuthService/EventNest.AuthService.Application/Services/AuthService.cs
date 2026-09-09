@@ -3,7 +3,7 @@ using EventNest.AuthService.Application.DTOs.Users;
 using EventNest.AuthService.Application.Interfaces;
 using EventNest.AuthService.Application.Services.Interfaces;
 using EventNest.AuthService.Domain.Entities;
-using EventNest.AuthService.Domain.Exceptions;
+using EventNest.Shared.Domain.Exceptions;
 
 namespace EventNest.AuthService.Application.Services;
 
