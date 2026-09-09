@@ -12,19 +12,11 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     <PackageReference Include="Swashbuckle.AspNetCore" Version="10.2.3" />
-    <PackageReference Include="Grpc.AspNetCore" Version="2.67.0" />
-    <PackageReference Include="Grpc.Tools" Version="2.67.0">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
-    </PackageReference>
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.0" />
   </ItemGroup>
 
   <ItemGroup>
-    <Protobuf Include="Proto\auth.proto" GrpcServices="Server" />
-  </ItemGroup>
-
-  <ItemGroup>
+    <ProjectReference Include="..\..\EventNest.Shared\EventNest.Shared.csproj" />
     <ProjectReference Include="..\EventNest.AuthService.Application\EventNest.AuthService.Application.csproj" />
     <ProjectReference Include="..\EventNest.AuthService.Infrastructure\EventNest.AuthService.Infrastructure.csproj" />
     <ProjectReference Include="..\EventNest.AuthService.Domain\EventNest.AuthService.Domain.csproj" />

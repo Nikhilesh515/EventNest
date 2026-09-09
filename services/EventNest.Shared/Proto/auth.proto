@@ -1,5 +1,5 @@
 syntax = "proto3";
-option csharp_namespace = "EventNest.AuthService.API.Grpc";
+option csharp_namespace = "EventNest.Shared.Grpc";
 
 package auth;
 

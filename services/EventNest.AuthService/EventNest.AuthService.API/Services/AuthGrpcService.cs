@@ -1,4 +1,4 @@
-using EventNest.AuthService.API.Grpc;
+using EventNest.Shared.Grpc;
 using EventNest.AuthService.Application.Authorization;
 using EventNest.AuthService.Application.Interfaces;
 using EventNest.AuthService.Application.Services.Interfaces;
@@ -6,7 +6,7 @@ using Grpc.Core;
 
 namespace EventNest.AuthService.API.Services;
 
-public class AuthGrpcService : EventNest.AuthService.API.Grpc.AuthService.AuthServiceBase
+public class AuthGrpcService : EventNest.Shared.Grpc.AuthService.AuthServiceBase
 {
     private readonly IUserService _userService;
     private readonly IPermissionService _permissionService;
