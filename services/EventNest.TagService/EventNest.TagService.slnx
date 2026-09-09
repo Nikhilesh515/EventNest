@@ -1,0 +1,6 @@
+<Solution>
+  <Project Path="EventNest.TagService.API/EventNest.TagService.API.csproj" />
+  <Project Path="EventNest.TagService.Application/EventNest.TagService.Application.csproj" />
+  <Project Path="EventNest.TagService.Domain/EventNest.TagService.Domain.csproj" />
+  <Project Path="EventNest.TagService.Infrastructure/EventNest.TagService.Infrastructure.csproj" />
+</Solution>
