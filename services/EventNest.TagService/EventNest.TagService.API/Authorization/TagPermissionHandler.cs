@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using EventNest.TagService.Application.Interfaces;
 using EventNest.Shared.Application.Authorization;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.Logging;
@@ -7,14 +8,16 @@ namespace EventNest.TagService.API.Authorization;
 
 public class TagPermissionHandler : AuthorizationHandler<PermissionRequirement>
 {
+    private readonly ICacheService _cacheService;
     private readonly ILogger<TagPermissionHandler> _logger;
 
-    public TagPermissionHandler(ILogger<TagPermissionHandler> logger)
+    public TagPermissionHandler(ICacheService cacheService, ILogger<TagPermissionHandler> logger)
     {
+        _cacheService = cacheService;
         _logger = logger;
     }
 
-    protected override Task HandleRequirementAsync(
+    protected override async Task HandleRequirementAsync(
         AuthorizationHandlerContext context,
         PermissionRequirement requirement)
     {
@@ -22,13 +25,19 @@ public class TagPermissionHandler : AuthorizationHandler<PermissionRequirement>
         if (userIdClaim is null)
         {
             _logger.LogWarning("Authorization failed: No user identity found in token.");
-            return Task.CompletedTask;
+            return;
         }
 
-        var permissions = context.User.Claims
-            .Where(c => c.Type == "permission")
-            .Select(c => c.Value)
-            .ToList();
+        var cacheKey = $"user:{userIdClaim}:permissions";
+        var permissions = await _cacheService.GetAsync<List<string>>(cacheKey);
+
+        if (permissions is null)
+        {
+            _logger.LogWarning(
+                "Permissions not cached for user {UserId}. Ensure AuthService has populated the cache.",
+                userIdClaim);
+            return;
+        }
 
         if (permissions.Contains(requirement.Permission))
         {
@@ -40,7 +49,5 @@ public class TagPermissionHandler : AuthorizationHandler<PermissionRequirement>
                 "Authorization failed: User {UserId} lacks permission {Permission}",
                 userIdClaim, requirement.Permission);
         }
-
-        return Task.CompletedTask;
     }
 }
