@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="10.2.3" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.0" />
+    <PackageReference Include="Grpc.AspNetCore.Server.Reflection" Version="2.67.0" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.11">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\EventNest.RSVPService.Application\EventNest.RSVPService.Application.csproj" />
+    <ProjectReference Include="..\EventNest.RSVPService.Infrastructure\EventNest.RSVPService.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\EventNest.Shared\EventNest.Shared.Application\EventNest.Shared.Application.csproj" />
+    <ProjectReference Include="..\..\EventNest.Shared\EventNest.Shared.Infrastructure\EventNest.Shared.Infrastructure.csproj" />
+  </ItemGroup>
+
+</Project>
