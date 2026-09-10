@@ -1,0 +1,29 @@
+syntax = "proto3";
+option csharp_namespace = "EventNest.Shared.Infrastructure.Grpc";
+
+package event;
+
+service EventService {
+  rpc GetEvent (GetEventRequest) returns (GetEventResponse);
+  rpc GetEventsByCreator (GetEventsByCreatorRequest) returns (GetEventsByCreatorResponse);
+}
+
+message GetEventRequest {
+  string event_id = 1;
+}
+
+message GetEventResponse {
+  string event_id = 1;
+  string title = 2;
+  string organizer_id = 3;
+  int32 max_attendees = 4;
+  string status = 5;
+}
+
+message GetEventsByCreatorRequest {
+  string creator_id = 1;
+}
+
+message GetEventsByCreatorResponse {
+  repeated GetEventResponse events = 1;
+}

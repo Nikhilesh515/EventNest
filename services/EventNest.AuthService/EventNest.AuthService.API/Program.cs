@@ -4,11 +4,27 @@ using EventNest.AuthService.Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.WebHost.ConfigureKestrel(options =>
+{
+    options.ListenLocalhost(5001, o => o.Protocols = Microsoft.AspNetCore.Server.Kestrel.Core.HttpProtocols.Http1);
+    options.ListenLocalhost(51001, o => o.Protocols = Microsoft.AspNetCore.Server.Kestrel.Core.HttpProtocols.Http2);
+});
+
 builder.Services.AddApplication();
 builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddApi(builder.Configuration);
 
+if (builder.Environment.IsDevelopment())
+{
+    builder.Services.AddGrpcReflection();
+}
+
 var app = builder.Build();
+
+if (app.Environment.IsDevelopment())
+{
+    app.MapGrpcReflectionService();
+}
 
 await app.MigrateAndSeed();
 app.UseApiMiddleware();

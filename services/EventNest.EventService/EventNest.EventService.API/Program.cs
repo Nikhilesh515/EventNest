@@ -1,23 +1,43 @@
+using EventNest.EventService.API;
+using EventNest.EventService.API.Middleware;
+using EventNest.EventService.API.Services;
+using EventNest.EventService.Application;
+using EventNest.EventService.Infrastructure;
+
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
+builder.WebHost.ConfigureKestrel(options =>
+{
+    options.ListenLocalhost(5002, o => o.Protocols = Microsoft.AspNetCore.Server.Kestrel.Core.HttpProtocols.Http1);
+    options.ListenLocalhost(51002, o => o.Protocols = Microsoft.AspNetCore.Server.Kestrel.Core.HttpProtocols.Http2);
+});
 
-builder.Services.AddControllers();
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
-builder.Services.AddOpenApi();
+builder.Services.AddApplication();
+builder.Services.AddInfrastructure(builder.Configuration);
+builder.Services.AddApi(builder.Configuration);
+
+if (builder.Environment.IsDevelopment())
+{
+    builder.Services.AddGrpcReflection();
+}
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
-    app.MapOpenApi();
+    app.UseSwagger();
+    app.UseSwaggerUI();
+    app.MapGrpcReflectionService();
 }
 
-app.UseHttpsRedirection();
+await app.MigrateAndSeed();
 
+app.UseMiddleware<GlobalExceptionHandlerMiddleware>();
+
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+app.MapGrpcService<EventGrpcService>();
 
 app.Run();

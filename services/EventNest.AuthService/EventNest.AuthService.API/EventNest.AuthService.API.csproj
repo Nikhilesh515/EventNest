@@ -13,6 +13,7 @@
     </PackageReference>
     <PackageReference Include="Swashbuckle.AspNetCore" Version="10.2.3" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.0" />
+    <PackageReference Include="Grpc.AspNetCore.Server.Reflection" Version="2.67.0" />
   </ItemGroup>
 
   <ItemGroup>
