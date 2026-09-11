@@ -82,6 +82,7 @@ public class PermissionController : ControllerBase
             "Tags.Delete" => "Delete Tags",
             "RSVPs.View" => "View RSVPs",
             "RSVPs.Create" => "Create RSVPs",
+            "RSVPs.Edit" => "Edit RSVPs",
             "RSVPs.Manage" => "Manage RSVPs",
             "RSVPs.Cancel" => "Cancel RSVPs",
             "Users.View" => "View Users",

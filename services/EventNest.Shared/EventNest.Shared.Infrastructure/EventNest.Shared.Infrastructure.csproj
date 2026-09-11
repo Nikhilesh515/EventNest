@@ -18,6 +18,7 @@
     <Protobuf Include="Proto\auth.proto" GrpcServices="Both" />
     <Protobuf Include="Proto\tag.proto" GrpcServices="Both" />
     <Protobuf Include="Proto\event.proto" GrpcServices="Both" />
+    <Protobuf Include="Proto\rsvp.proto" GrpcServices="Both" />
   </ItemGroup>
 
 </Project>

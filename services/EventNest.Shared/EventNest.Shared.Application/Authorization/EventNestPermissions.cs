@@ -27,6 +27,7 @@ public static class EventNestPermissions
     {
         public const string View = GroupRSVPs + ".View";
         public const string Create = GroupRSVPs + ".Create";
+        public const string Edit = GroupRSVPs + ".Edit";
         public const string Manage = GroupRSVPs + ".Manage";
         public const string Cancel = GroupRSVPs + ".Cancel";
     }
@@ -41,13 +42,13 @@ public static class EventNestPermissions
     {
         [GroupEvents] = new() { Events.View, Events.Create, Events.Edit, Events.Delete },
         [GroupTags] = new() { Tags.View, Tags.Create, Tags.Edit, Tags.Delete },
-        [GroupRSVPs] = new() { RSVPs.View, RSVPs.Create, RSVPs.Manage, RSVPs.Cancel },
+        [GroupRSVPs] = new() { RSVPs.View, RSVPs.Create, RSVPs.Edit, RSVPs.Manage, RSVPs.Cancel },
         [GroupUsers] = new() { Users.View, Users.Manage }
     };
 
     public static readonly Dictionary<string, List<string>> RoleDefaults = new()
     {
-        ["User"] = new() { Events.View, Tags.View, RSVPs.View, RSVPs.Create },
+        ["User"] = new() { Events.View, Tags.View, RSVPs.View, RSVPs.Create, RSVPs.Edit, RSVPs.Cancel },
         ["Organizer"] = new() { Events.View, Events.Create, Events.Edit, Tags.View, Tags.Create, RSVPs.View, RSVPs.Manage },
         ["Moderator"] = new() { Events.View, Events.Create, Events.Edit, Tags.View, Tags.Create, RSVPs.View, RSVPs.Manage, Users.View },
         ["Admin"] = new(),

@@ -92,10 +92,11 @@ public class PermissionService : IPermissionService
                EventNestPermissions.Tags.Create == permissionName ||
                EventNestPermissions.Tags.Edit == permissionName ||
                EventNestPermissions.Tags.Delete == permissionName ||
-               EventNestPermissions.RSVPs.View == permissionName ||
-               EventNestPermissions.RSVPs.Create == permissionName ||
-               EventNestPermissions.RSVPs.Manage == permissionName ||
-               EventNestPermissions.RSVPs.Cancel == permissionName ||
+                EventNestPermissions.RSVPs.View == permissionName ||
+                EventNestPermissions.RSVPs.Create == permissionName ||
+                EventNestPermissions.RSVPs.Edit == permissionName ||
+                EventNestPermissions.RSVPs.Manage == permissionName ||
+                EventNestPermissions.RSVPs.Cancel == permissionName ||
                EventNestPermissions.Users.View == permissionName ||
                EventNestPermissions.Users.Manage == permissionName;
     }
@@ -114,6 +115,7 @@ public class PermissionService : IPermissionService
             "Tags.Delete" => ("Tags", "Delete Tags"),
             "RSVPs.View" => ("RSVPs", "View RSVPs"),
             "RSVPs.Create" => ("RSVPs", "Create RSVPs"),
+            "RSVPs.Edit" => ("RSVPs", "Edit RSVPs"),
             "RSVPs.Manage" => ("RSVPs", "Manage RSVPs"),
             "RSVPs.Cancel" => ("RSVPs", "Cancel RSVPs"),
             "Users.View" => ("Users", "View Users"),

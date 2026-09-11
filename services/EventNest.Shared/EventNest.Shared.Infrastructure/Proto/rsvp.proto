@@ -1,0 +1,59 @@
+syntax = "proto3";
+option csharp_namespace = "EventNest.Shared.Infrastructure.Grpc";
+package rsvp;
+
+service RsvpService {
+  rpc GetRsvpCount (GetRsvpCountRequest) returns (GetRsvpCountResponse);
+  rpc GetUserRsvpStatus (GetUserRsvpStatusRequest) returns (GetUserRsvpStatusResponse);
+  rpc GetEventRsvps (GetEventRsvpsRequest) returns (GetEventRsvpsResponse);
+  rpc GetUserRsvps (GetUserRsvpsRequest) returns (GetUserRsvpsResponse);
+}
+
+message GetRsvpCountRequest {
+  string event_id = 1;
+}
+
+message GetRsvpCountResponse {
+  int32 confirmed_count = 1;
+  int32 total_guests = 2;
+  string event_id = 3;
+}
+
+message GetUserRsvpStatusRequest {
+  string user_id = 1;
+  string event_id = 2;
+}
+
+message GetUserRsvpStatusResponse {
+  bool has_rsvp = 1;
+  string rsvp_id = 2;
+  string status = 3;
+  int32 guest_count = 4;
+}
+
+message GetEventRsvpsRequest {
+  string event_id = 1;
+}
+
+message GetEventRsvpsResponse {
+  int32 count = 1;
+  repeated RsvpItem rsvps = 2;
+}
+
+message GetUserRsvpsRequest {
+  string user_id = 1;
+}
+
+message GetUserRsvpsResponse {
+  int32 count = 1;
+  repeated RsvpItem rsvps = 2;
+}
+
+message RsvpItem {
+  string rsvp_id = 1;
+  string event_id = 2;
+  string user_id = 3;
+  string user_name = 4;
+  string status = 5;
+  int32 guest_count = 6;
+}
