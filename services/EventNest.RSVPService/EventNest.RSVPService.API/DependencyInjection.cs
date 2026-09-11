@@ -64,6 +64,8 @@ public static class DependencyInjection
 
         services.AddScoped<IAuthorizationHandler, RsvpPermissionHandler>();
 
+        services.AddHealthChecks();
+
         services.AddGrpc();
 
         return services;

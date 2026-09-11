@@ -71,17 +71,8 @@ public static class DependencyInjection
         // Authorization handler
         services.AddScoped<IAuthorizationHandler, PermissionHandler>();
 
-        // CORS
-        services.AddCors(options =>
-        {
-            options.AddPolicy("AllowFrontend", policy =>
-            {
-                policy.WithOrigins("http://localhost:3000", "https://localhost:3000")
-                      .AllowAnyMethod()
-                      .AllowAnyHeader()
-                      .AllowCredentials();
-            });
-        });
+        // Health Checks
+        services.AddHealthChecks();
 
         // gRPC
         services.AddGrpc();
@@ -113,11 +104,10 @@ public static class DependencyInjection
 
         app.UseHttpsRedirection();
 
-        app.UseCors("AllowFrontend");
-
         app.UseAuthentication();
         app.UseAuthorization();
 
+        app.MapHealthChecks("/health");
         app.MapControllers();
 
         app.MapGrpcService<AuthGrpcService>();

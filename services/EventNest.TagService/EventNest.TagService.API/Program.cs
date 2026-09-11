@@ -37,6 +37,7 @@ app.UseMiddleware<GlobalExceptionHandlerMiddleware>();
 app.UseAuthentication();
 app.UseAuthorization();
 
+app.MapHealthChecks("/health");
 app.MapControllers();
 app.MapGrpcService<TagGrpcService>();
 
