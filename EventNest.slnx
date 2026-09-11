@@ -29,4 +29,7 @@
     <Project Path="services/EventNest.RSVPService/EventNest.RSVPService.Domain/EventNest.RSVPService.Domain.csproj" />
     <Project Path="services/EventNest.RSVPService/EventNest.RSVPService.Infrastructure/EventNest.RSVPService.Infrastructure.csproj" />
   </Folder>
+  <Folder Name="/Services/EventNest.Gateway/">
+    <Project Path="services/EventNest.Gateway/EventNest.Gateway.csproj" />
+  </Folder>
 </Solution>

@@ -1,0 +1,5 @@
+<Solution>
+  <Folder Name="/EventNest.Gateway/">
+    <Project Path="EventNest.Gateway.csproj" />
+  </Folder>
+</Solution>
