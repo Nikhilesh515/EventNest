@@ -1,8 +1,6 @@
 using System.Text;
-using System.Threading.RateLimiting;
 using EventNest.Gateway.Middleware;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.IdentityModel.Tokens;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -38,36 +36,6 @@ builder.Services.AddAuthorization(options =>
         policy.RequireAuthenticatedUser());
 });
 
-builder.Services.AddRateLimiter(options =>
-{
-    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
-
-    options.AddSlidingWindowLimiter("anonymous", opt =>
-    {
-        opt.PermitLimit = 100;
-        opt.Window = TimeSpan.FromMinutes(1);
-        opt.SegmentsPerWindow = 4;
-        opt.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
-        opt.QueueLimit = 10;
-    });
-
-    options.AddSlidingWindowLimiter("authenticated", opt =>
-    {
-        opt.PermitLimit = 500;
-        opt.Window = TimeSpan.FromMinutes(1);
-        opt.SegmentsPerWindow = 4;
-        opt.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
-        opt.QueueLimit = 50;
-    });
-
-    options.OnRejected = async (context, cancellationToken) =>
-    {
-        context.HttpContext.Response.Headers["Retry-After"] = "60";
-        await context.HttpContext.Response.WriteAsync(
-            "Rate limit exceeded. Please try again later.", cancellationToken);
-    };
-});
-
 builder.Services.AddHealthChecks()
     .AddCheck("self", () => Microsoft.Extensions.Diagnostics.HealthChecks.HealthCheckResult.Healthy())
     .AddUrlGroup(new Uri("http://localhost:5001/health"), name: "auth-service")
@@ -90,9 +58,9 @@ var app = builder.Build();
 
 app.UseMiddleware<GatewayExceptionHandlerMiddleware>();
 app.UseMiddleware<RequestLoggingMiddleware>();
+app.UseMiddleware<RateLimitMiddleware>();
 
 app.UseCors("AllowFrontend");
-app.UseRateLimiter();
 app.UseAuthentication();
 app.UseAuthorization();
 
