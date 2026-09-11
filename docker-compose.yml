@@ -1,0 +1,255 @@
+services:
+  # ──────────────────────────────────────────────
+  # Infrastructure
+  # ──────────────────────────────────────────────
+  postgres:
+    image: postgres:15-alpine
+    container_name: eventnest-postgres
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./docker/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks:
+      - eventnest-internal
+
+  redis:
+    image: redis:7-alpine
+    container_name: eventnest-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+    networks:
+      - eventnest-internal
+
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: eventnest-rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER:-guest}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASS:-guest}
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    volumes:
+      - rabbitmq-data:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 15s
+      timeout: 10s
+      retries: 5
+      start_period: 20s
+    networks:
+      - eventnest-internal
+
+  # ──────────────────────────────────────────────
+  # Microservices
+  # ──────────────────────────────────────────────
+  auth-service:
+    build:
+      context: .
+      dockerfile: services/EventNest.AuthService/Dockerfile
+    container_name: eventnest-auth
+    environment:
+      ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT:-Production}
+      ConnectionStrings__AuthDb: "Host=postgres;Port=5432;Database=eventnest_auth;Username=${POSTGRES_USER:-postgres};Password=${POSTGRES_PASSWORD:-postgres}"
+      ConnectionStrings__Redis: "redis:6379"
+      Jwt__SecretKey: ${JWT_SECRET_KEY:-YOUR_SECRET_KEY_HERE_MIN_32_CHARS_LONG!!}
+      Jwt__Issuer: ${JWT_ISSUER:-EventNest.AuthService}
+      Jwt__Audience: ${JWT_AUDIENCE:-EventNest}
+      Jwt__AccessTokenExpiryMinutes: ${JWT_ACCESS_EXPIRY:-60}
+      Jwt__RefreshTokenExpiryDays: ${JWT_REFRESH_EXPIRY:-30}
+    ports:
+      - "5001:5001"
+      - "51001:51001"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    networks:
+      - eventnest-internal
+
+  event-service:
+    build:
+      context: .
+      dockerfile: services/EventNest.EventService/Dockerfile
+    container_name: eventnest-event
+    environment:
+      ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT:-Production}
+      ConnectionStrings__EventDb: "Host=postgres;Port=5432;Database=eventnest_event;Username=${POSTGRES_USER:-postgres};Password=${POSTGRES_PASSWORD:-postgres}"
+      ConnectionStrings__Redis: "redis:6379"
+      Jwt__SecretKey: ${JWT_SECRET_KEY:-YOUR_SECRET_KEY_HERE_MIN_32_CHARS_LONG!!}
+      Jwt__Issuer: ${JWT_ISSUER:-EventNest.AuthService}
+      Jwt__Audience: ${JWT_AUDIENCE:-EventNest}
+      Services__Auth__GrpcUrl: "http://auth-service:51001"
+      Services__Tag__GrpcUrl: "http://tag-service:51003"
+      RabbitMQ__Host: "rabbitmq"
+      RabbitMQ__Port: "5672"
+      RabbitMQ__Username: ${RABBITMQ_USER:-guest}
+      RabbitMQ__Password: ${RABBITMQ_PASS:-guest}
+    ports:
+      - "5002:5002"
+      - "51002:51002"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      auth-service:
+        condition: service_healthy
+      tag-service:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5002/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    networks:
+      - eventnest-internal
+
+  tag-service:
+    build:
+      context: .
+      dockerfile: services/EventNest.TagService/Dockerfile
+    container_name: eventnest-tag
+    environment:
+      ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT:-Production}
+      ConnectionStrings__TagDb: "Host=postgres;Port=5432;Database=eventnest_tag;Username=${POSTGRES_USER:-postgres};Password=${POSTGRES_PASSWORD:-postgres}"
+      ConnectionStrings__Redis: "redis:6379"
+      Jwt__SecretKey: ${JWT_SECRET_KEY:-YOUR_SECRET_KEY_HERE_MIN_32_CHARS_LONG!!}
+      Jwt__Issuer: ${JWT_ISSUER:-EventNest.AuthService}
+      Jwt__Audience: ${JWT_AUDIENCE:-EventNest}
+    ports:
+      - "5003:5003"
+      - "51003:51003"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5003/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    networks:
+      - eventnest-internal
+
+  rsvp-service:
+    build:
+      context: .
+      dockerfile: services/EventNest.RSVPService/Dockerfile
+    container_name: eventnest-rsvp
+    environment:
+      ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT:-Production}
+      ConnectionStrings__RsvpDb: "Host=postgres;Port=5432;Database=eventnest_rsvp;Username=${POSTGRES_USER:-postgres};Password=${POSTGRES_PASSWORD:-postgres}"
+      ConnectionStrings__Redis: "redis:6379"
+      Jwt__SecretKey: ${JWT_SECRET_KEY:-YOUR_SECRET_KEY_HERE_MIN_32_CHARS_LONG!!}
+      Jwt__Issuer: ${JWT_ISSUER:-EventNest.AuthService}
+      Jwt__Audience: ${JWT_AUDIENCE:-EventNest}
+      Services__Event__GrpcUrl: "http://event-service:51002"
+    ports:
+      - "5004:5004"
+      - "51004:51004"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      event-service:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5004/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    networks:
+      - eventnest-internal
+
+  # ──────────────────────────────────────────────
+  # API Gateway
+  # ──────────────────────────────────────────────
+  gateway:
+    build:
+      context: .
+      dockerfile: services/EventNest.Gateway/Dockerfile
+    container_name: eventnest-gateway
+    environment:
+      ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT:-Production}
+      Jwt__SecretKey: ${JWT_SECRET_KEY:-YOUR_SECRET_KEY_HERE_MIN_32_CHARS_LONG!!}
+      Jwt__Issuer: ${JWT_ISSUER:-EventNest.AuthService}
+      Jwt__Audience: ${JWT_AUDIENCE:-EventNest}
+      ReverseProxy__Clusters__auth-cluster__Destinations__auth-1__Address: "http://auth-service:5001/"
+      ReverseProxy__Clusters__event-cluster__Destinations__event-1__Address: "http://event-service:5002/"
+      ReverseProxy__Clusters__tag-cluster__Destinations__tag-1__Address: "http://tag-service:5003/"
+      ReverseProxy__Clusters__rsvp-cluster__Destinations__rsvp-1__Address: "http://rsvp-service:5004/"
+      HealthChecks__AuthService: "http://auth-service:5001/health"
+      HealthChecks__EventService: "http://event-service:5002/health"
+      HealthChecks__TagService: "http://tag-service:5003/health"
+      HealthChecks__RSVPService: "http://rsvp-service:5004/health"
+    ports:
+      - "5000:5000"
+    depends_on:
+      auth-service:
+        condition: service_healthy
+      event-service:
+        condition: service_healthy
+      tag-service:
+        condition: service_healthy
+      rsvp-service:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
+    networks:
+      - eventnest-internal
+
+# ──────────────────────────────────────────────
+# Volumes
+# ──────────────────────────────────────────────
+volumes:
+  postgres-data:
+    driver: local
+  redis-data:
+    driver: local
+  rabbitmq-data:
+    driver: local
+
+# ──────────────────────────────────────────────
+# Networks
+# ──────────────────────────────────────────────
+networks:
+  eventnest-internal:
+    driver: bridge
+    name: eventnest-network

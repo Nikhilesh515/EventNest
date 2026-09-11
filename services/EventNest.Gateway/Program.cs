@@ -7,7 +7,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.WebHost.ConfigureKestrel(options =>
 {
-    options.ListenLocalhost(5000, o => o.Protocols = Microsoft.AspNetCore.Server.Kestrel.Core.HttpProtocols.Http1);
+    options.ListenAnyIP(5000, o => o.Protocols = Microsoft.AspNetCore.Server.Kestrel.Core.HttpProtocols.Http1);
 });
 
 builder.Services.AddReverseProxy()
@@ -36,12 +36,17 @@ builder.Services.AddAuthorization(options =>
         policy.RequireAuthenticatedUser());
 });
 
+var authHealthUrl = builder.Configuration["HealthChecks:AuthService"] ?? "http://localhost:5001/health";
+var eventHealthUrl = builder.Configuration["HealthChecks:EventService"] ?? "http://localhost:5002/health";
+var tagHealthUrl = builder.Configuration["HealthChecks:TagService"] ?? "http://localhost:5003/health";
+var rsvpHealthUrl = builder.Configuration["HealthChecks:RSVPService"] ?? "http://localhost:5004/health";
+
 builder.Services.AddHealthChecks()
     .AddCheck("self", () => Microsoft.Extensions.Diagnostics.HealthChecks.HealthCheckResult.Healthy())
-    .AddUrlGroup(new Uri("http://localhost:5001/health"), name: "auth-service")
-    .AddUrlGroup(new Uri("http://localhost:5002/health"), name: "event-service")
-    .AddUrlGroup(new Uri("http://localhost:5003/health"), name: "tag-service")
-    .AddUrlGroup(new Uri("http://localhost:5004/health"), name: "rsvp-service");
+    .AddUrlGroup(new Uri(authHealthUrl), name: "auth-service")
+    .AddUrlGroup(new Uri(eventHealthUrl), name: "event-service")
+    .AddUrlGroup(new Uri(tagHealthUrl), name: "tag-service")
+    .AddUrlGroup(new Uri(rsvpHealthUrl), name: "rsvp-service");
 
 builder.Services.AddCors(options =>
 {
