@@ -13,5 +13,6 @@ public record EventDto(
     Guid OrganizerId,
     string OrganizerName,
     string Status,
+    string Visibility,
     DateTime CreatedAt,
     List<EventTagDto> Tags);

@@ -51,6 +51,10 @@ public class GlobalExceptionHandlerMiddleware
                 HttpStatusCode.Conflict,
                 conflictEx.Message,
                 (Dictionary<string, string[]>?)null),
+            ForbiddenException forbiddenEx => (
+                HttpStatusCode.Forbidden,
+                forbiddenEx.Message,
+                (Dictionary<string, string[]>?)null),
             _ => (
                 HttpStatusCode.InternalServerError,
                 "An unexpected error occurred.",

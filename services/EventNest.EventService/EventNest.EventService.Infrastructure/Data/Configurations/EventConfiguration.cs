@@ -30,6 +30,10 @@ public class EventConfiguration : IEntityTypeConfiguration<Event>
             .IsRequired()
             .HasMaxLength(20);
 
+        builder.Property(e => e.Visibility)
+            .IsRequired()
+            .HasMaxLength(20);
+
         builder.HasIndex(e => e.OrganizerId);
         builder.HasIndex(e => e.StartsAt);
         builder.HasIndex(e => e.Status);

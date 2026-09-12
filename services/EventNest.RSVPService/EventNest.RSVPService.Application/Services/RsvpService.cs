@@ -58,19 +58,41 @@ public class RsvpService : IRsvpService
     public async Task<List<RsvpDetailDto>> GetByEventIdAsync(Guid eventId)
     {
         var rsvps = await _repository.GetByEventIdAsync(eventId);
-        return rsvps.Select(r => new RsvpDetailDto(
-            r.Id, r.EventId, r.UserId, r.UserName,
-            r.Status.ToString(), r.GuestCount, r.Notes,
-            r.RespondedAt, r.CreatedAt, null)).ToList();
+        var titleCache = new Dictionary<Guid, string?>();
+
+        return rsvps.Select(r =>
+        {
+            if (!titleCache.TryGetValue(r.EventId, out var title))
+            {
+                var evt = _eventGrpcClient.GetEventAsync(r.EventId).GetAwaiter().GetResult();
+                title = evt?.Title;
+                titleCache[r.EventId] = title;
+            }
+            return new RsvpDetailDto(
+                r.Id, r.EventId, r.UserId, r.UserName,
+                r.Status.ToString(), r.GuestCount, r.Notes,
+                r.RespondedAt, r.CreatedAt, title);
+        }).ToList();
     }
 
     public async Task<List<RsvpDetailDto>> GetByUserIdAsync(Guid userId)
     {
         var rsvps = await _repository.GetByUserIdAsync(userId);
-        return rsvps.Select(r => new RsvpDetailDto(
-            r.Id, r.EventId, r.UserId, r.UserName,
-            r.Status.ToString(), r.GuestCount, r.Notes,
-            r.RespondedAt, r.CreatedAt, null)).ToList();
+        var titleCache = new Dictionary<Guid, string?>();
+
+        return rsvps.Select(r =>
+        {
+            if (!titleCache.TryGetValue(r.EventId, out var title))
+            {
+                var evt = _eventGrpcClient.GetEventAsync(r.EventId).GetAwaiter().GetResult();
+                title = evt?.Title;
+                titleCache[r.EventId] = title;
+            }
+            return new RsvpDetailDto(
+                r.Id, r.EventId, r.UserId, r.UserName,
+                r.Status.ToString(), r.GuestCount, r.Notes,
+                r.RespondedAt, r.CreatedAt, title);
+        }).ToList();
     }
 
     public async Task<RsvpDto> UpdateAsync(Guid id, Guid userId, UpdateRsvpRequestDto request)

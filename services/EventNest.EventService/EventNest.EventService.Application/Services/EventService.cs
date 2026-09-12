@@ -32,6 +32,12 @@ public class EventService : IEventService
             organizerId,
             organizerName);
 
+        if (!string.IsNullOrEmpty(request.Visibility) &&
+            Enum.TryParse<EventVisibility>(request.Visibility, true, out var visibility))
+        {
+            evt.UpdateVisibility(visibility);
+        }
+
         await AddValidatedTagsAsync(evt, request.Tags);
 
         await _repository.AddAsync(evt);
@@ -70,10 +76,13 @@ public class EventService : IEventService
         return events.Select(MapToDto).ToList();
     }
 
-    public async Task<EventDto> UpdateAsync(Guid id, UpdateEventRequestDto request)
+    public async Task<EventDto> UpdateAsync(Guid id, UpdateEventRequestDto request, Guid userId)
     {
         var evt = await _repository.GetByIdAsync(id)
             ?? throw new NotFoundException($"Event with id {id} not found.");
+
+        if (evt.OrganizerId != userId)
+            throw new ForbiddenException("You can only manage your own events.");
 
         if (await _repository.ExistsByTitleAsync(request.Title, id))
             throw new ConflictException($"Event with title '{request.Title}' already exists.");
@@ -84,6 +93,12 @@ public class EventService : IEventService
         evt.UpdateSchedule(request.StartsAt, request.EndsAt);
         evt.UpdateCapacity(request.Capacity);
 
+        if (!string.IsNullOrEmpty(request.Visibility) &&
+            Enum.TryParse<EventVisibility>(request.Visibility, true, out var visibility))
+        {
+            evt.UpdateVisibility(visibility);
+        }
+
         evt.EventTags.Clear();
         await AddValidatedTagsAsync(evt, request.Tags);
 
@@ -93,19 +108,25 @@ public class EventService : IEventService
         return MapToDto(evt);
     }
 
-    public async Task DeleteAsync(Guid id)
+    public async Task DeleteAsync(Guid id, Guid userId)
     {
         var evt = await _repository.GetByIdAsync(id)
             ?? throw new NotFoundException($"Event with id {id} not found.");
+
+        if (evt.OrganizerId != userId)
+            throw new ForbiddenException("You can only manage your own events.");
 
         await _repository.DeleteAsync(evt);
         await _repository.SaveChangesAsync();
     }
 
-    public async Task<EventDto> PublishAsync(Guid id)
+    public async Task<EventDto> PublishAsync(Guid id, Guid userId)
     {
         var evt = await _repository.GetByIdAsync(id)
             ?? throw new NotFoundException($"Event with id {id} not found.");
+
+        if (evt.OrganizerId != userId)
+            throw new ForbiddenException("You can only manage your own events.");
 
         evt.Publish();
         await _repository.UpdateAsync(evt);
@@ -114,10 +135,13 @@ public class EventService : IEventService
         return MapToDto(evt);
     }
 
-    public async Task<EventDto> CancelAsync(Guid id)
+    public async Task<EventDto> CancelAsync(Guid id, Guid userId)
     {
         var evt = await _repository.GetByIdAsync(id)
             ?? throw new NotFoundException($"Event with id {id} not found.");
+
+        if (evt.OrganizerId != userId)
+            throw new ForbiddenException("You can only manage your own events.");
 
         evt.Cancel();
         await _repository.UpdateAsync(evt);
@@ -126,10 +150,13 @@ public class EventService : IEventService
         return MapToDto(evt);
     }
 
-    public async Task<EventDto> CompleteAsync(Guid id)
+    public async Task<EventDto> CompleteAsync(Guid id, Guid userId)
     {
         var evt = await _repository.GetByIdAsync(id)
             ?? throw new NotFoundException($"Event with id {id} not found.");
+
+        if (evt.OrganizerId != userId)
+            throw new ForbiddenException("You can only manage your own events.");
 
         evt.Complete();
         await _repository.UpdateAsync(evt);
@@ -176,6 +203,7 @@ public class EventService : IEventService
             evt.OrganizerId,
             evt.OrganizerName,
             evt.Status.ToString(),
+            evt.Visibility.ToString(),
             evt.CreatedAt,
             evt.EventTags.Select(t => new EventTagDto(t.TagId, t.TagName)).ToList());
     }

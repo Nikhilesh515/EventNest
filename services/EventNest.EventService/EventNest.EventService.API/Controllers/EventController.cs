@@ -35,9 +35,26 @@ public class EventController : ControllerBase
     [HttpGet]
     public async Task<IActionResult> GetAll([FromQuery] string? status)
     {
+        var isAnonymous = User.Identity?.IsAuthenticated != true;
+
+        if (isAnonymous)
+        {
+            var published = await _eventService.GetByStatusAsync("Published");
+            return Ok(ApiResponseDto<List<EventDto>>.Ok(published));
+        }
+
         var result = string.IsNullOrEmpty(status)
             ? await _eventService.GetAllAsync()
             : await _eventService.GetByStatusAsync(status);
+        return Ok(ApiResponseDto<List<EventDto>>.Ok(result));
+    }
+
+    [HttpGet("my")]
+    [Authorize]
+    public async Task<IActionResult> GetMyEvents()
+    {
+        var userId = GetUserId();
+        var result = await _eventService.GetByOrganizerAsync(userId);
         return Ok(ApiResponseDto<List<EventDto>>.Ok(result));
     }
 
@@ -47,6 +64,10 @@ public class EventController : ControllerBase
         var result = await _eventService.GetByIdAsync(id);
         if (result is null)
             return NotFound(ApiResponseDto<EventDto>.Fail(404, $"Event with ID '{id}' was not found."));
+
+        if (User.Identity?.IsAuthenticated != true && result.Status != "Published")
+            return NotFound(ApiResponseDto<EventDto>.Fail(404, $"Event with ID '{id}' was not found."));
+
         return Ok(ApiResponseDto<EventDto>.Ok(result));
     }
 
@@ -54,7 +75,7 @@ public class EventController : ControllerBase
     [Authorize(EventNestPermissions.Events.Edit)]
     public async Task<IActionResult> Update(Guid id, [FromBody] UpdateEventRequestDto request)
     {
-        var result = await _eventService.UpdateAsync(id, request);
+        var result = await _eventService.UpdateAsync(id, request, GetUserId());
         return Ok(ApiResponseDto<EventDto>.Ok(result));
     }
 
@@ -62,7 +83,7 @@ public class EventController : ControllerBase
     [Authorize(EventNestPermissions.Events.Delete)]
     public async Task<IActionResult> Delete(Guid id)
     {
-        await _eventService.DeleteAsync(id);
+        await _eventService.DeleteAsync(id, GetUserId());
         return NoContent();
     }
 
@@ -70,7 +91,7 @@ public class EventController : ControllerBase
     [Authorize(EventNestPermissions.Events.Edit)]
     public async Task<IActionResult> Publish(Guid id)
     {
-        var result = await _eventService.PublishAsync(id);
+        var result = await _eventService.PublishAsync(id, GetUserId());
         return Ok(ApiResponseDto<EventDto>.Ok(result));
     }
 
@@ -78,8 +99,24 @@ public class EventController : ControllerBase
     [Authorize(EventNestPermissions.Events.Edit)]
     public async Task<IActionResult> Cancel(Guid id)
     {
-        var result = await _eventService.CancelAsync(id);
+        var result = await _eventService.CancelAsync(id, GetUserId());
         return Ok(ApiResponseDto<EventDto>.Ok(result));
+    }
+
+    [HttpPut("{id:guid}/complete")]
+    [Authorize(EventNestPermissions.Events.Edit)]
+    public async Task<IActionResult> Complete(Guid id)
+    {
+        var result = await _eventService.CompleteAsync(id, GetUserId());
+        return Ok(ApiResponseDto<EventDto>.Ok(result));
+    }
+
+    private Guid GetUserId()
+    {
+        var claim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (!Guid.TryParse(claim, out var userId))
+            throw new UnauthorizedException("Invalid user identity.");
+        return userId;
     }
 
     private async Task<(Guid Id, string Name)> GetOrganizerInfoAsync()

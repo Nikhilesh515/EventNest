@@ -9,9 +9,9 @@ public interface IEventService
     Task<List<EventDto>> GetAllAsync();
     Task<List<EventDto>> GetByOrganizerAsync(Guid organizerId);
     Task<List<EventDto>> GetByStatusAsync(string status);
-    Task<EventDto> UpdateAsync(Guid id, UpdateEventRequestDto request);
-    Task DeleteAsync(Guid id);
-    Task<EventDto> PublishAsync(Guid id);
-    Task<EventDto> CancelAsync(Guid id);
-    Task<EventDto> CompleteAsync(Guid id);
+    Task<EventDto> UpdateAsync(Guid id, UpdateEventRequestDto request, Guid userId);
+    Task DeleteAsync(Guid id, Guid userId);
+    Task<EventDto> PublishAsync(Guid id, Guid userId);
+    Task<EventDto> CancelAsync(Guid id, Guid userId);
+    Task<EventDto> CompleteAsync(Guid id, Guid userId);
 }

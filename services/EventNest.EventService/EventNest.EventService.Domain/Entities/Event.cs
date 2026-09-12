@@ -14,6 +14,7 @@ public class Event : BaseEntity
     public Guid OrganizerId { get; private set; }
     public string OrganizerName { get; private set; } = string.Empty;
     public EventStatus Status { get; private set; }
+    public EventVisibility Visibility { get; private set; }
     public ICollection<EventTag> EventTags { get; private set; } = new List<EventTag>();
 
     private Event() { }
@@ -40,6 +41,7 @@ public class Event : BaseEntity
             OrganizerId = organizerId,
             OrganizerName = organizerName,
             Status = EventStatus.Draft,
+            Visibility = EventVisibility.Public,
             CreatedAt = DateTime.UtcNow
         };
     }
@@ -92,6 +94,12 @@ public class Event : BaseEntity
             EventTags.Remove(tag);
             UpdatedAt = DateTime.UtcNow;
         }
+    }
+
+    public void UpdateVisibility(EventVisibility visibility)
+    {
+        Visibility = visibility;
+        UpdatedAt = DateTime.UtcNow;
     }
 
     public void Publish()

@@ -9,4 +9,5 @@ public record CreateEventRequestDto(
     DateTime StartsAt,
     DateTime EndsAt,
     int Capacity,
-    List<EventTagRequestDto> Tags);
+    List<EventTagRequestDto> Tags,
+    string? Visibility = null);
