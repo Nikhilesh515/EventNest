@@ -35,8 +35,8 @@ public class Event : BaseEntity
             Title = title,
             Description = description,
             Location = location,
-            StartsAt = startsAt,
-            EndsAt = endsAt,
+            StartsAt = ToUtc(startsAt),
+            EndsAt = ToUtc(endsAt),
             Capacity = capacity,
             OrganizerId = organizerId,
             OrganizerName = organizerName,
@@ -66,10 +66,17 @@ public class Event : BaseEntity
 
     public void UpdateSchedule(DateTime startsAt, DateTime endsAt)
     {
-        StartsAt = startsAt;
-        EndsAt = endsAt;
+        StartsAt = ToUtc(startsAt);
+        EndsAt = ToUtc(endsAt);
         UpdatedAt = DateTime.UtcNow;
     }
+
+    private static DateTime ToUtc(DateTime value) => value.Kind switch
+    {
+        DateTimeKind.Utc => value,
+        DateTimeKind.Local => value.ToUniversalTime(),
+        _ => DateTime.SpecifyKind(value, DateTimeKind.Utc)
+    };
 
     public void UpdateCapacity(int capacity)
     {
