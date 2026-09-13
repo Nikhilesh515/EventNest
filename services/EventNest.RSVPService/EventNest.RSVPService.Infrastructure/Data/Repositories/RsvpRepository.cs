@@ -34,6 +34,17 @@ public class RsvpRepository : IRsvpRepository
             .Where(r => r.EventId == eventId && r.Status != RsvpStatus.Cancelled)
             .SumAsync(r => r.GuestCount);
 
+    public async Task<int> GetConfirmedCountAsync(Guid eventId)
+        => await _context.Rsvps
+            .Where(r => r.EventId == eventId && r.Status == RsvpStatus.Confirmed)
+            .SumAsync(r => r.GuestCount);
+
+    public async Task<Dictionary<Guid, int>> GetConfirmedCountsAsync(List<Guid> eventIds)
+        => await _context.Rsvps
+            .Where(r => eventIds.Contains(r.EventId) && r.Status == RsvpStatus.Confirmed)
+            .GroupBy(r => r.EventId)
+            .ToDictionaryAsync(g => g.Key, g => g.Sum(r => r.GuestCount));
+
     public Task UpdateAsync(Rsvp rsvp)
     {
         _context.Rsvps.Update(rsvp);

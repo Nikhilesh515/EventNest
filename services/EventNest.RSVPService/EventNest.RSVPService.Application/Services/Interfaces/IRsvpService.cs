@@ -11,5 +11,6 @@ public interface IRsvpService
     Task<RsvpDto> UpdateAsync(Guid id, Guid userId, UpdateRsvpRequestDto request);
     Task CancelAsync(Guid id, Guid userId);
     Task<int> GetConfirmedCountAsync(Guid eventId);
+    Task<Dictionary<Guid, int>> GetConfirmedCountsAsync(List<Guid> eventIds);
     Task<int> GetTotalGuestsAsync(Guid eventId);
 }

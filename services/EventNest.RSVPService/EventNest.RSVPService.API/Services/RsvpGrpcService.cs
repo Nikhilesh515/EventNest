@@ -26,6 +26,30 @@ public class RsvpGrpcService : RsvpService.RsvpServiceBase
         };
     }
 
+    public override async Task<GetRsvpCountsResponse> GetRsvpCounts(GetRsvpCountsRequest request, ServerCallContext context)
+    {
+        var eventIds = request.EventIds
+            .Select(id => Guid.TryParse(id, out var g) ? (Guid?)g : null)
+            .Where(g => g.HasValue)
+            .Select(g => g!.Value)
+            .ToList();
+
+        var counts = await _rsvpService.GetConfirmedCountsAsync(eventIds);
+
+        var response = new GetRsvpCountsResponse();
+        foreach (var id in eventIds)
+        {
+            counts.TryGetValue(id, out var count);
+            response.Counts.Add(new RsvpCountItem
+            {
+                EventId = id.ToString(),
+                ConfirmedCount = count
+            });
+        }
+
+        return response;
+    }
+
     public override async Task<GetUserRsvpStatusResponse> GetUserRsvpStatus(GetUserRsvpStatusRequest request, ServerCallContext context)
     {
         if (!Guid.TryParse(request.UserId, out var userId) || !Guid.TryParse(request.EventId, out var eventId))

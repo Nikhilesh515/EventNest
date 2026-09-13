@@ -106,6 +106,7 @@ services:
       Jwt__Audience: ${JWT_AUDIENCE:-EventNest}
       Services__Auth__GrpcUrl: "http://auth-service:51001"
       Services__Tag__GrpcUrl: "http://tag-service:51003"
+      Services__Rsvp__GrpcUrl: "http://rsvp-service:51004"
       RabbitMQ__Host: "rabbitmq"
       RabbitMQ__Port: "5672"
       RabbitMQ__Username: ${RABBITMQ_USER:-guest}

@@ -15,11 +15,16 @@ public class EventController : ControllerBase
 {
     private readonly IEventService _eventService;
     private readonly IUserGrpcClient _userGrpcClient;
+    private readonly IAuthorizationService _authorizationService;
 
-    public EventController(IEventService eventService, IUserGrpcClient userGrpcClient)
+    public EventController(
+        IEventService eventService,
+        IUserGrpcClient userGrpcClient,
+        IAuthorizationService authorizationService)
     {
         _eventService = eventService;
         _userGrpcClient = userGrpcClient;
+        _authorizationService = authorizationService;
     }
 
     [HttpPost]
@@ -33,20 +38,11 @@ public class EventController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<IActionResult> GetAll([FromQuery] string? status)
+    public async Task<IActionResult> GetAll([FromQuery] EventListQueryDto query)
     {
-        var isAnonymous = User.Identity?.IsAuthenticated != true;
-
-        if (isAnonymous)
-        {
-            var published = await _eventService.GetByStatusAsync("Published");
-            return Ok(ApiResponseDto<List<EventDto>>.Ok(published));
-        }
-
-        var result = string.IsNullOrEmpty(status)
-            ? await _eventService.GetAllAsync()
-            : await _eventService.GetByStatusAsync(status);
-        return Ok(ApiResponseDto<List<EventDto>>.Ok(result));
+        var canManage = await CanManageEventsAsync();
+        var result = await _eventService.GetPagedAsync(query, canManage);
+        return Ok(ApiResponseDto<PagedResultDto<EventDto>>.Ok(result));
     }
 
     [HttpGet("my")]
@@ -65,7 +61,7 @@ public class EventController : ControllerBase
         if (result is null)
             return NotFound(ApiResponseDto<EventDto>.Fail(404, $"Event with ID '{id}' was not found."));
 
-        if (User.Identity?.IsAuthenticated != true && result.Status != "Published")
+        if (!await CanManageEventsAsync() && result.Status != "Published")
             return NotFound(ApiResponseDto<EventDto>.Fail(404, $"Event with ID '{id}' was not found."));
 
         return Ok(ApiResponseDto<EventDto>.Ok(result));
@@ -109,6 +105,16 @@ public class EventController : ControllerBase
     {
         var result = await _eventService.CompleteAsync(id, GetUserId());
         return Ok(ApiResponseDto<EventDto>.Ok(result));
+    }
+
+    private async Task<bool> CanManageEventsAsync()
+    {
+        var edit = await _authorizationService.AuthorizeAsync(User, EventNestPermissions.Events.Edit);
+        if (edit.Succeeded)
+            return true;
+
+        var delete = await _authorizationService.AuthorizeAsync(User, EventNestPermissions.Events.Delete);
+        return delete.Succeeded;
     }
 
     private Guid GetUserId()

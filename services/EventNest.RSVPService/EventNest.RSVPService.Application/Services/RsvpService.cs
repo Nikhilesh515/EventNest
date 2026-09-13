@@ -104,18 +104,20 @@ public class RsvpService : IRsvpService
 
         if (request.Status is not null)
         {
-            var newStatus = Enum.Parse<RsvpStatus>(request.Status, ignoreCase: true);
+            if (!Enum.TryParse<RsvpStatus>(request.Status, ignoreCase: true, out var newStatus))
+            {
+                throw new ValidationException(new Dictionary<string, string[]>
+                {
+                    ["status"] = new[] { $"Invalid status '{request.Status}'. Valid values: Confirmed, Declined, Maybe, Cancelled." }
+                });
+            }
+
             switch (newStatus)
             {
                 case RsvpStatus.Confirmed: rsvp.Confirm(); break;
                 case RsvpStatus.Declined:  rsvp.Decline(); break;
                 case RsvpStatus.Maybe:     rsvp.Maybe();   break;
                 case RsvpStatus.Cancelled: rsvp.Cancel();  break;
-                default:
-                    throw new ValidationException(new Dictionary<string, string[]>
-                    {
-                        ["status"] = new[] { $"Invalid status: {request.Status}." }
-                    });
             }
         }
 
@@ -137,7 +139,10 @@ public class RsvpService : IRsvpService
     }
 
     public async Task<int> GetConfirmedCountAsync(Guid eventId)
-        => await _repository.GetNonCancelledGuestCountAsync(eventId);
+        => await _repository.GetConfirmedCountAsync(eventId);
+
+    public async Task<Dictionary<Guid, int>> GetConfirmedCountsAsync(List<Guid> eventIds)
+        => await _repository.GetConfirmedCountsAsync(eventIds);
 
     public async Task<int> GetTotalGuestsAsync(Guid eventId)
         => await _repository.GetNonCancelledGuestCountAsync(eventId);

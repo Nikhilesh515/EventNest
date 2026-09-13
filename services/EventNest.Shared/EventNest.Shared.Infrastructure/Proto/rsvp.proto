@@ -4,6 +4,7 @@ package rsvp;
 
 service RsvpService {
   rpc GetRsvpCount (GetRsvpCountRequest) returns (GetRsvpCountResponse);
+  rpc GetRsvpCounts (GetRsvpCountsRequest) returns (GetRsvpCountsResponse);
   rpc GetUserRsvpStatus (GetUserRsvpStatusRequest) returns (GetUserRsvpStatusResponse);
   rpc GetEventRsvps (GetEventRsvpsRequest) returns (GetEventRsvpsResponse);
   rpc GetUserRsvps (GetUserRsvpsRequest) returns (GetUserRsvpsResponse);
@@ -17,6 +18,20 @@ message GetRsvpCountResponse {
   int32 confirmed_count = 1;
   int32 total_guests = 2;
   string event_id = 3;
+}
+
+message GetRsvpCountsRequest {
+  repeated string event_ids = 1;
+}
+
+message GetRsvpCountsResponse {
+  repeated RsvpCountItem counts = 1;
+}
+
+message RsvpCountItem {
+  string event_id = 1;
+  int32 confirmed_count = 2;
+  int32 total_guests = 3;
 }
 
 message GetUserRsvpStatusRequest {

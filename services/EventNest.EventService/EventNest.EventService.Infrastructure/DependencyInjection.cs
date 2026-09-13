@@ -46,6 +46,16 @@ public static class DependencyInjection
         });
         services.AddScoped<ITagGrpcClient, TagGrpcClient>();
 
+        var rsvpGrpcUrl = configuration["Services:Rsvp:GrpcUrl"];
+        if (!string.IsNullOrEmpty(rsvpGrpcUrl))
+        {
+            services.AddGrpcClient<RsvpService.RsvpServiceClient>(o =>
+            {
+                o.Address = new Uri(rsvpGrpcUrl);
+            });
+            services.AddScoped<IRsvpGrpcClient, RsvpGrpcClient>();
+        }
+
         return services;
     }
 }

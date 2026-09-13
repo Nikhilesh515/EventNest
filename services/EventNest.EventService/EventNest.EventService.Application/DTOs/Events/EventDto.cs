@@ -14,5 +14,6 @@ public record EventDto(
     string OrganizerName,
     string Status,
     string Visibility,
+    int Going,
     DateTime CreatedAt,
     List<EventTagDto> Tags);

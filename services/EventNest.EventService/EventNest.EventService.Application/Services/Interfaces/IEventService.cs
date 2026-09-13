@@ -7,6 +7,7 @@ public interface IEventService
     Task<EventDto> CreateAsync(CreateEventRequestDto request, Guid organizerId, string organizerName);
     Task<EventDto?> GetByIdAsync(Guid id);
     Task<List<EventDto>> GetAllAsync();
+    Task<PagedResultDto<EventDto>> GetPagedAsync(EventListQueryDto query, bool includeUnpublished);
     Task<List<EventDto>> GetByOrganizerAsync(Guid organizerId);
     Task<List<EventDto>> GetByStatusAsync(string status);
     Task<EventDto> UpdateAsync(Guid id, UpdateEventRequestDto request, Guid userId);
