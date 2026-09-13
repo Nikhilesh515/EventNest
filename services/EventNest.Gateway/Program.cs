@@ -48,11 +48,14 @@ builder.Services.AddHealthChecks()
     .AddUrlGroup(new Uri(tagHealthUrl), name: "tag-service")
     .AddUrlGroup(new Uri(rsvpHealthUrl), name: "rsvp-service");
 
+var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>()
+    ?? ["http://localhost:5173", "https://localhost:5173"];
+
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend", policy =>
     {
-        policy.WithOrigins("http://localhost:3000", "https://localhost:3000")
+        policy.WithOrigins(allowedOrigins)
               .AllowAnyHeader()
               .AllowAnyMethod()
               .AllowCredentials();
