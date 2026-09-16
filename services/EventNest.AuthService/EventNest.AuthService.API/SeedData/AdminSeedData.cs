@@ -1,6 +1,7 @@
 using EventNest.AuthService.Application.Interfaces;
 using EventNest.AuthService.Domain.Entities;
 using EventNest.AuthService.Infrastructure.Data;
+using EventNest.Shared.Application.SeedData;
 using Microsoft.EntityFrameworkCore;
 
 namespace EventNest.AuthService.API.SeedData;
@@ -17,7 +18,7 @@ public static class AdminSeedData
             return;
 
         var passwordHash = passwordHasher.Hash("Admin@123");
-        var admin = User.Create("admin@eventnest.io", "Admin User", passwordHash, adminRole.Id);
+        var admin = User.Create("admin@eventnest.io", "Admin User", passwordHash, adminRole.Id, SeedDataIds.AdminUserId);
 
         await context.Users.AddAsync(admin);
         await context.SaveChangesAsync();

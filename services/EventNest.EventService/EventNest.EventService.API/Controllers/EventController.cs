@@ -61,7 +61,7 @@ public class EventController : ControllerBase
         if (result is null)
             return NotFound(ApiResponseDto<EventDto>.Fail(404, $"Event with ID '{id}' was not found."));
 
-        if (!await CanManageEventsAsync() && result.Status != "Published")
+        if (result.Status != "Published" && !IsOwnerOrAdmin(result.OrganizerId))
             return NotFound(ApiResponseDto<EventDto>.Fail(404, $"Event with ID '{id}' was not found."));
 
         return Ok(ApiResponseDto<EventDto>.Ok(result));
@@ -115,6 +115,13 @@ public class EventController : ControllerBase
 
         var delete = await _authorizationService.AuthorizeAsync(User, EventNestPermissions.Events.Delete);
         return delete.Succeeded;
+    }
+
+    private bool IsOwnerOrAdmin(Guid organizerId)
+    {
+        var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        var isOwner = Guid.TryParse(userIdClaim, out var userId) && organizerId == userId;
+        return isOwner || User.IsInRole("Admin") || User.IsInRole("SuperAdmin");
     }
 
     private Guid GetUserId()

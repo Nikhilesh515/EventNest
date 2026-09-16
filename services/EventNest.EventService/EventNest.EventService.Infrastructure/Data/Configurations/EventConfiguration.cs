@@ -37,7 +37,6 @@ public class EventConfiguration : IEntityTypeConfiguration<Event>
         builder.HasIndex(e => e.OrganizerId);
         builder.HasIndex(e => e.StartsAt);
         builder.HasIndex(e => e.Status);
-
-        builder.Ignore(e => e.EventTags);
+        builder.HasIndex(e => e.Title).IsUnique();
     }
 }

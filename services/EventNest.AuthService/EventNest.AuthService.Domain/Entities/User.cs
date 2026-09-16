@@ -19,11 +19,11 @@ public class User : BaseEntity
 
     private User() { }
 
-    public static User Create(string email, string displayName, string passwordHash, Guid roleId)
+    public static User Create(string email, string displayName, string passwordHash, Guid roleId, Guid? id = null)
     {
         return new User
         {
-            Id = Guid.NewGuid(),
+            Id = id ?? Guid.NewGuid(),
             Email = email,
             DisplayName = displayName,
             PasswordHash = passwordHash,

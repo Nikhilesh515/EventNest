@@ -1,6 +1,5 @@
 using System.Text;
 using EventNest.RSVPService.API.Authorization;
-using EventNest.RSVPService.API.SeedData;
 using EventNest.RSVPService.Infrastructure.Data;
 using EventNest.Shared.Application.Authorization;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -77,7 +76,5 @@ public static class DependencyInjection
 
         var context = scope.ServiceProvider.GetRequiredService<RsvpDbContext>();
         await context.Database.MigrateAsync();
-
-        await RsvpSeedData.SeedAsync(context);
     }
 }
