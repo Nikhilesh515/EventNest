@@ -18,6 +18,8 @@ message GetEventResponse {
   string organizer_id = 3;
   int32 max_attendees = 4;
   string status = 5;
+  string starts_at = 6;
+  string location = 7;
 }
 
 message GetEventsByCreatorRequest {

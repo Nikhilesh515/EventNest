@@ -29,7 +29,7 @@ public class PermissionController : ControllerBase
             foreach (var permissionName in group.Value)
             {
                 var displayName = GetDisplayName(permissionName);
-                permissions.Add(new PermissionDto(permissionName, displayName, group.Key, false));
+                permissions.Add(new PermissionDto(permissionName, displayName, group.Key, false, "none"));
             }
         }
 

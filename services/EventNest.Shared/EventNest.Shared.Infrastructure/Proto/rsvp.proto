@@ -18,6 +18,7 @@ message GetRsvpCountResponse {
   int32 confirmed_count = 1;
   int32 total_guests = 2;
   string event_id = 3;
+  int32 maybe_count = 4;
 }
 
 message GetRsvpCountsRequest {
@@ -32,6 +33,7 @@ message RsvpCountItem {
   string event_id = 1;
   int32 confirmed_count = 2;
   int32 total_guests = 3;
+  int32 maybe_count = 4;
 }
 
 message GetUserRsvpStatusRequest {

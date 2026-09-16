@@ -21,12 +21,25 @@ public class EventGrpcClient : IEventGrpcClient
         try
         {
             var response = await _client.GetEventAsync(new GetEventRequest { EventId = eventId.ToString() });
+
+            DateTime? startsAt = null;
+            if (DateTime.TryParse(
+                    response.StartsAt,
+                    null,
+                    System.Globalization.DateTimeStyles.RoundtripKind,
+                    out var parsed))
+            {
+                startsAt = parsed;
+            }
+
             return new EventGrpcInfo(
                 Guid.Parse(response.EventId),
                 response.Title,
                 Guid.Parse(response.OrganizerId),
                 response.MaxAttendees,
-                response.Status);
+                response.Status,
+                startsAt,
+                string.IsNullOrEmpty(response.Location) ? null : response.Location);
         }
         catch (RpcException ex) when (ex.StatusCode == StatusCode.NotFound)
         {

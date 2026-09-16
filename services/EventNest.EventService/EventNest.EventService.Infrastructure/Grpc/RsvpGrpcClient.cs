@@ -16,7 +16,7 @@ public class RsvpGrpcClient : IRsvpGrpcClient
         _logger = logger;
     }
 
-    public async Task<Dictionary<Guid, int>> GetGoingCountsAsync(List<Guid> eventIds)
+    public async Task<Dictionary<Guid, RsvpCounts>> GetCountsAsync(List<Guid> eventIds)
     {
         try
         {
@@ -27,12 +27,14 @@ public class RsvpGrpcClient : IRsvpGrpcClient
 
             return response.Counts
                 .Where(c => Guid.TryParse(c.EventId, out _))
-                .ToDictionary(c => Guid.Parse(c.EventId), c => c.ConfirmedCount);
+                .ToDictionary(
+                    c => Guid.Parse(c.EventId),
+                    c => new RsvpCounts(c.ConfirmedCount, c.MaybeCount));
         }
         catch (RpcException ex)
         {
             _logger.LogError(ex, "Failed to get RSVP counts via gRPC.");
-            return new Dictionary<Guid, int>();
+            return new Dictionary<Guid, RsvpCounts>();
         }
     }
 }

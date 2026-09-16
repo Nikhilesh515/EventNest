@@ -25,12 +25,19 @@ public class PermissionService : IPermissionService
             throw new NotFoundException($"User with ID '{userId}' was not found.");
 
         var permissionNames = await _permissionStore.GetUserPermissionsAsync(userId);
+        var grants = await _permissionStore.GetGrantsAsync(userId);
+        var grantedNames = grants
+            .Where(g => g.IsGranted && g.IsValid)
+            .Select(g => g.PermissionName)
+            .ToHashSet();
+
         var result = new List<PermissionDto>();
 
         foreach (var permissionName in permissionNames)
         {
             var (group, displayName) = GetPermissionInfo(permissionName);
-            result.Add(new PermissionDto(permissionName, displayName, group, true));
+            var source = grantedNames.Contains(permissionName) ? "direct-grant" : "role-default";
+            result.Add(new PermissionDto(permissionName, displayName, group, true, source));
         }
 
         return result;
@@ -56,7 +63,7 @@ public class PermissionService : IPermissionService
         await _permissionStore.AddGrantAsync(grant);
 
         var (group, displayName) = GetPermissionInfo(permissionName);
-        return new PermissionDto(permissionName, displayName, group, true);
+        return new PermissionDto(permissionName, displayName, group, true, "direct-grant");
     }
 
     public async Task RevokeAsync(Guid userId, string permissionName)

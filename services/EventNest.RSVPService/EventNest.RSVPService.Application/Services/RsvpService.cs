@@ -58,41 +58,36 @@ public class RsvpService : IRsvpService
     public async Task<List<RsvpDetailDto>> GetByEventIdAsync(Guid eventId)
     {
         var rsvps = await _repository.GetByEventIdAsync(eventId);
-        var titleCache = new Dictionary<Guid, string?>();
-
-        return rsvps.Select(r =>
-        {
-            if (!titleCache.TryGetValue(r.EventId, out var title))
-            {
-                var evt = _eventGrpcClient.GetEventAsync(r.EventId).GetAwaiter().GetResult();
-                title = evt?.Title;
-                titleCache[r.EventId] = title;
-            }
-            return new RsvpDetailDto(
-                r.Id, r.EventId, r.UserId, r.UserName,
-                r.Status.ToString(), r.GuestCount, r.Notes,
-                r.RespondedAt, r.CreatedAt, title);
-        }).ToList();
+        return await EnrichAsync(rsvps);
     }
 
     public async Task<List<RsvpDetailDto>> GetByUserIdAsync(Guid userId)
     {
         var rsvps = await _repository.GetByUserIdAsync(userId);
-        var titleCache = new Dictionary<Guid, string?>();
+        return await EnrichAsync(rsvps);
+    }
 
-        return rsvps.Select(r =>
+    private async Task<List<RsvpDetailDto>> EnrichAsync(List<Rsvp> rsvps)
+    {
+        var cache = new Dictionary<Guid, EventGrpcInfo?>();
+        var result = new List<RsvpDetailDto>();
+
+        foreach (var r in rsvps)
         {
-            if (!titleCache.TryGetValue(r.EventId, out var title))
+            if (!cache.TryGetValue(r.EventId, out var info))
             {
-                var evt = _eventGrpcClient.GetEventAsync(r.EventId).GetAwaiter().GetResult();
-                title = evt?.Title;
-                titleCache[r.EventId] = title;
+                info = await _eventGrpcClient.GetEventAsync(r.EventId);
+                cache[r.EventId] = info;
             }
-            return new RsvpDetailDto(
+
+            result.Add(new RsvpDetailDto(
                 r.Id, r.EventId, r.UserId, r.UserName,
                 r.Status.ToString(), r.GuestCount, r.Notes,
-                r.RespondedAt, r.CreatedAt, title);
-        }).ToList();
+                r.RespondedAt, r.CreatedAt,
+                info?.Title, info?.StartsAt, info?.Location));
+        }
+
+        return result;
     }
 
     public async Task<RsvpDto> UpdateAsync(Guid id, Guid userId, UpdateRsvpRequestDto request)
@@ -144,6 +139,9 @@ public class RsvpService : IRsvpService
     public async Task<Dictionary<Guid, int>> GetConfirmedCountsAsync(List<Guid> eventIds)
         => await _repository.GetConfirmedCountsAsync(eventIds);
 
+    public async Task<Dictionary<Guid, (int Confirmed, int Maybe)>> GetStatusCountsAsync(List<Guid> eventIds)
+        => await _repository.GetStatusCountsAsync(eventIds);
+
     public async Task<int> GetTotalGuestsAsync(Guid eventId)
         => await _repository.GetNonCancelledGuestCountAsync(eventId);
 
@@ -160,5 +158,5 @@ public class RsvpService : IRsvpService
     private static RsvpDto MapToDto(Rsvp r) => new(
         r.Id, r.EventId, r.UserId, r.UserName,
         r.Status.ToString(), r.GuestCount, r.Notes,
-        r.RespondedAt, r.CreatedAt);
+        r.RespondedAt, r.CreatedAt, r.UpdatedAt);
 }

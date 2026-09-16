@@ -16,7 +16,7 @@ public class TagGrpcClient : ITagGrpcClient
         _logger = logger;
     }
 
-    public async Task<List<(Guid Id, string Name)>?> GetTagsAsync(List<Guid> tagIds)
+    public async Task<List<(Guid Id, string Name, string Color)>?> GetTagsAsync(List<Guid> tagIds)
     {
         try
         {
@@ -27,7 +27,7 @@ public class TagGrpcClient : ITagGrpcClient
 
             return response.Tags
                 .Where(t => Guid.TryParse(t.TagId, out _))
-                .Select(t => (Guid.Parse(t.TagId), t.Name))
+                .Select(t => (Guid.Parse(t.TagId), t.Name, t.Color))
                 .ToList();
         }
         catch (RpcException ex)

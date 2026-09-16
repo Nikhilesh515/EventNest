@@ -10,5 +10,7 @@ public record RsvpDetailDto(
     string? Notes,
     DateTime RespondedAt,
     DateTime CreatedAt,
-    string? EventTitle
+    string? EventTitle,
+    DateTime? EventStartsAt,
+    string? EventLocation
 );

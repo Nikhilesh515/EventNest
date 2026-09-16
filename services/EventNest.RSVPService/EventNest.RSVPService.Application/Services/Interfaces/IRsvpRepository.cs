@@ -12,6 +12,7 @@ public interface IRsvpRepository
     Task<int> GetNonCancelledGuestCountAsync(Guid eventId);
     Task<int> GetConfirmedCountAsync(Guid eventId);
     Task<Dictionary<Guid, int>> GetConfirmedCountsAsync(List<Guid> eventIds);
+    Task<Dictionary<Guid, (int Confirmed, int Maybe)>> GetStatusCountsAsync(List<Guid> eventIds);
     Task UpdateAsync(Rsvp rsvp);
     Task DeleteAsync(Rsvp rsvp);
     Task<int> SaveChangesAsync();

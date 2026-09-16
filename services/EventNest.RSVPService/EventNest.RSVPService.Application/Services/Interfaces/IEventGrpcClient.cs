@@ -5,4 +5,11 @@ public interface IEventGrpcClient
     Task<EventGrpcInfo?> GetEventAsync(Guid eventId);
 }
 
-public record EventGrpcInfo(Guid Id, string Title, Guid OrganizerId, int MaxAttendees, string Status);
+public record EventGrpcInfo(
+    Guid Id,
+    string Title,
+    Guid OrganizerId,
+    int MaxAttendees,
+    string Status,
+    DateTime? StartsAt,
+    string? Location);

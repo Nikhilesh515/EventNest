@@ -17,12 +17,15 @@ public class RsvpGrpcService : RsvpService.RsvpServiceBase
 
         var confirmed = await _rsvpService.GetConfirmedCountAsync(eventId);
         var total = await _rsvpService.GetTotalGuestsAsync(eventId);
+        var counts = await _rsvpService.GetStatusCountsAsync(new List<Guid> { eventId });
+        counts.TryGetValue(eventId, out var statusCounts);
 
         return new GetRsvpCountResponse
         {
             EventId = request.EventId,
             ConfirmedCount = confirmed,
-            TotalGuests = total
+            TotalGuests = total,
+            MaybeCount = statusCounts.Maybe
         };
     }
 
@@ -34,16 +37,17 @@ public class RsvpGrpcService : RsvpService.RsvpServiceBase
             .Select(g => g!.Value)
             .ToList();
 
-        var counts = await _rsvpService.GetConfirmedCountsAsync(eventIds);
+        var counts = await _rsvpService.GetStatusCountsAsync(eventIds);
 
         var response = new GetRsvpCountsResponse();
         foreach (var id in eventIds)
         {
-            counts.TryGetValue(id, out var count);
+            counts.TryGetValue(id, out var statusCounts);
             response.Counts.Add(new RsvpCountItem
             {
                 EventId = id.ToString(),
-                ConfirmedCount = count
+                ConfirmedCount = statusCounts.Confirmed,
+                MaybeCount = statusCounts.Maybe
             });
         }
 

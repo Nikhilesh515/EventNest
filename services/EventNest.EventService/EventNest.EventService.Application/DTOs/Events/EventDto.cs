@@ -1,6 +1,6 @@
 namespace EventNest.EventService.Application.DTOs.Events;
 
-public record EventTagDto(Guid TagId, string TagName);
+public record EventTagDto(Guid TagId, string TagName, string Color);
 
 public record EventDto(
     Guid Id,
@@ -16,4 +16,6 @@ public record EventDto(
     string Visibility,
     int Going,
     DateTime CreatedAt,
-    List<EventTagDto> Tags);
+    List<EventTagDto> Tags,
+    int MaybeCount,
+    DateTime? UpdatedAt);

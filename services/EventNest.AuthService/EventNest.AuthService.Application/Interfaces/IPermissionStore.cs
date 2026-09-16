@@ -8,6 +8,7 @@ public interface IPermissionStore
     Task AddGrantAsync(PermissionGrant grant);
     Task RemoveGrantAsync(Guid userId, string permissionName);
     Task<PermissionGrant?> GetGrantAsync(Guid userId, string permissionName);
+    Task<IReadOnlyList<PermissionGrant>> GetGrantsAsync(Guid userId);
     Task InvalidateUserAsync(Guid userId);
     Task InvalidateRoleAsync(Guid roleId);
 }

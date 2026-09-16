@@ -110,6 +110,13 @@ public class PermissionStore : IPermissionStore
             .FirstOrDefaultAsync(g => g.UserId == userId && g.PermissionName == permissionName);
     }
 
+    public async Task<IReadOnlyList<PermissionGrant>> GetGrantsAsync(Guid userId)
+    {
+        return await _context.PermissionGrants
+            .Where(g => g.UserId == userId)
+            .ToListAsync();
+    }
+
     public Task InvalidateUserAsync(Guid userId)
     {
         return RefreshUserCacheAsync(userId);

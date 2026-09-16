@@ -9,5 +9,6 @@ public record RsvpDto(
     int GuestCount,
     string? Notes,
     DateTime RespondedAt,
-    DateTime CreatedAt
+    DateTime CreatedAt,
+    DateTime? UpdatedAt
 );

@@ -12,5 +12,6 @@ public interface IRsvpService
     Task CancelAsync(Guid id, Guid userId);
     Task<int> GetConfirmedCountAsync(Guid eventId);
     Task<Dictionary<Guid, int>> GetConfirmedCountsAsync(List<Guid> eventIds);
+    Task<Dictionary<Guid, (int Confirmed, int Maybe)>> GetStatusCountsAsync(List<Guid> eventIds);
     Task<int> GetTotalGuestsAsync(Guid eventId);
 }

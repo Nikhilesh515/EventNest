@@ -8,6 +8,8 @@ namespace EventNest.EventService.Application.Services;
 
 public class EventService : IEventService
 {
+    private const string FallbackTagColor = "#6366f1";
+
     private readonly IEventRepository _repository;
     private readonly ITagGrpcClient _tagGrpcClient;
     private readonly IRsvpGrpcClient? _rsvpGrpcClient;
@@ -43,12 +45,12 @@ public class EventService : IEventService
             evt.UpdateVisibility(visibility);
         }
 
-        await AddValidatedTagsAsync(evt, request.Tags);
+        await AddValidatedTagsAsync(evt, MergeTagIds(request.Tags, request.TagIds));
 
         await _repository.AddAsync(evt);
         await _repository.SaveChangesAsync();
 
-        return MapToDto(evt);
+        return (await MapManyAsync(new List<Event> { evt })).Single();
     }
 
     public async Task<EventDto?> GetByIdAsync(Guid id)
@@ -57,15 +59,13 @@ public class EventService : IEventService
         if (evt is null)
             return null;
 
-        var counts = await GetGoingCountsAsync(new List<Guid> { id });
-        counts.TryGetValue(id, out var going);
-        return MapToDto(evt) with { Going = going };
+        return (await MapManyAsync(new List<Event> { evt })).Single();
     }
 
     public async Task<List<EventDto>> GetAllAsync()
     {
         var events = await _repository.GetAllAsync();
-        return events.Select(MapToDto).ToList();
+        return await MapManyAsync(events);
     }
 
     public async Task<PagedResultDto<EventDto>> GetPagedAsync(
@@ -80,9 +80,9 @@ public class EventService : IEventService
 
         if (isPopularity)
         {
-            var counts = await GetGoingCountsAsync(events.Select(e => e.Id).ToList());
+            var counts = await GetCountsAsync(events.Select(e => e.Id).ToList());
             events = events
-                .OrderByDescending(e => counts.TryGetValue(e.Id, out var c) ? c : 0)
+                .OrderByDescending(e => counts.TryGetValue(e.Id, out var c) ? c.Going : 0)
                 .ToList();
 
             var page = Math.Max(query.Page, 1);
@@ -90,12 +90,7 @@ public class EventService : IEventService
             events = events.Skip((page - 1) * pageSize).Take(pageSize).ToList();
         }
 
-        var countsByEvent = await GetGoingCountsAsync(events.Select(e => e.Id).ToList());
-        var items = events.Select(e =>
-        {
-            countsByEvent.TryGetValue(e.Id, out var going);
-            return MapToDto(e) with { Going = going };
-        }).ToList();
+        var items = await MapManyAsync(events);
 
         return new PagedResultDto<EventDto>(items, total, query.Page, query.PageSize, pages);
     }
@@ -103,12 +98,7 @@ public class EventService : IEventService
     public async Task<List<EventDto>> GetByOrganizerAsync(Guid organizerId)
     {
         var events = await _repository.GetByOrganizerAsync(organizerId);
-        var counts = await GetGoingCountsAsync(events.Select(e => e.Id).ToList());
-        return events.Select(e =>
-        {
-            counts.TryGetValue(e.Id, out var going);
-            return MapToDto(e) with { Going = going };
-        }).ToList();
+        return await MapManyAsync(events);
     }
 
     public async Task<List<EventDto>> GetByStatusAsync(string status)
@@ -120,7 +110,7 @@ public class EventService : IEventService
             });
 
         var events = await _repository.GetByStatusAsync(eventStatus);
-        return events.Select(MapToDto).ToList();
+        return await MapManyAsync(events);
     }
 
     public async Task<EventDto> UpdateAsync(Guid id, UpdateEventRequestDto request, Guid userId)
@@ -147,12 +137,12 @@ public class EventService : IEventService
         }
 
         evt.EventTags.Clear();
-        await AddValidatedTagsAsync(evt, request.Tags);
+        await AddValidatedTagsAsync(evt, MergeTagIds(request.Tags, request.TagIds));
 
         await _repository.UpdateAsync(evt);
         await _repository.SaveChangesAsync();
 
-        return MapToDto(evt);
+        return (await MapManyAsync(new List<Event> { evt })).Single();
     }
 
     public async Task DeleteAsync(Guid id, Guid userId)
@@ -179,7 +169,7 @@ public class EventService : IEventService
         await _repository.UpdateAsync(evt);
         await _repository.SaveChangesAsync();
 
-        return MapToDto(evt);
+        return (await MapManyAsync(new List<Event> { evt })).Single();
     }
 
     public async Task<EventDto> CancelAsync(Guid id, Guid userId)
@@ -194,7 +184,7 @@ public class EventService : IEventService
         await _repository.UpdateAsync(evt);
         await _repository.SaveChangesAsync();
 
-        return MapToDto(evt);
+        return (await MapManyAsync(new List<Event> { evt })).Single();
     }
 
     public async Task<EventDto> CompleteAsync(Guid id, Guid userId)
@@ -209,15 +199,27 @@ public class EventService : IEventService
         await _repository.UpdateAsync(evt);
         await _repository.SaveChangesAsync();
 
-        return MapToDto(evt);
+        return (await MapManyAsync(new List<Event> { evt })).Single();
     }
 
-    private async Task AddValidatedTagsAsync(Event evt, List<EventTagRequestDto> tags)
+    private static List<Guid> MergeTagIds(List<EventTagRequestDto>? tags, List<Guid>? tagIds)
     {
-        if (tags.Count == 0)
+        var merged = new List<Guid>();
+
+        if (tags is not null)
+            merged.AddRange(tags.Select(t => t.TagId));
+
+        if (tagIds is not null)
+            merged.AddRange(tagIds);
+
+        return merged.Distinct().ToList();
+    }
+
+    private async Task AddValidatedTagsAsync(Event evt, List<Guid> tagIds)
+    {
+        if (tagIds.Count == 0)
             return;
 
-        var tagIds = tags.Select(t => t.TagId).Distinct().ToList();
         var validTags = await _tagGrpcClient.GetTagsAsync(tagIds);
         if (validTags is null)
             throw new ValidationException(new Dictionary<string, string[]>
@@ -225,7 +227,10 @@ public class EventService : IEventService
                 ["tags"] = new[] { "Unable to validate tags. TagService is unavailable." }
             });
 
-        var tagLookup = validTags.GroupBy(t => t.Id).ToDictionary(g => g.Key, g => g.First().Name);
+        var tagLookup = validTags
+            .GroupBy(t => t.Id)
+            .ToDictionary(g => g.Key, g => g.First().Name);
+
         var missing = tagIds.Where(id => !tagLookup.ContainsKey(id)).ToList();
         if (missing.Count > 0)
             throw new ValidationException(new Dictionary<string, string[]>
@@ -233,8 +238,8 @@ public class EventService : IEventService
                 ["tags"] = new[] { $"Tag(s) not found: {string.Join(", ", missing)}" }
             });
 
-        foreach (var tag in tags)
-            evt.AddTag(tag.TagId, tagLookup[tag.TagId]);
+        foreach (var tagId in tagIds)
+            evt.AddTag(tagId, tagLookup[tagId]);
     }
 
     private static void ValidateQuery(EventListQueryDto query)
@@ -261,30 +266,67 @@ public class EventService : IEventService
             throw new ValidationException(errors);
     }
 
-    private async Task<Dictionary<Guid, int>> GetGoingCountsAsync(List<Guid> eventIds)
+    private async Task<Dictionary<Guid, RsvpCounts>> GetCountsAsync(List<Guid> eventIds)
     {
         if (_rsvpGrpcClient is null || eventIds.Count == 0)
-            return new Dictionary<Guid, int>();
+            return new Dictionary<Guid, RsvpCounts>();
 
-        return await _rsvpGrpcClient.GetGoingCountsAsync(eventIds);
+        return await _rsvpGrpcClient.GetCountsAsync(eventIds);
     }
 
-    private static EventDto MapToDto(Event evt)
+    private async Task<List<EventDto>> MapManyAsync(List<Event> events)
     {
-        return new EventDto(
-            evt.Id,
-            evt.Title,
-            evt.Description,
-            evt.Location,
-            evt.StartsAt,
-            evt.EndsAt,
-            evt.Capacity,
-            evt.OrganizerId,
-            evt.OrganizerName,
-            evt.Status.ToString(),
-            evt.Visibility.ToString(),
-            0,
-            evt.CreatedAt,
-            evt.EventTags.Select(t => new EventTagDto(t.TagId, t.TagName)).ToList());
+        if (events.Count == 0)
+            return new List<EventDto>();
+
+        var eventIds = events.Select(e => e.Id).ToList();
+        var counts = await GetCountsAsync(eventIds);
+
+        var tagIds = events
+            .SelectMany(e => e.EventTags.Select(t => t.TagId))
+            .Distinct()
+            .ToList();
+
+        var colors = new Dictionary<Guid, string>();
+        if (tagIds.Count > 0)
+        {
+            var tags = await _tagGrpcClient.GetTagsAsync(tagIds);
+            if (tags is not null)
+            {
+                colors = tags
+                    .GroupBy(t => t.Id)
+                    .ToDictionary(g => g.Key, g => g.First().Color);
+            }
+        }
+
+        return events.Select(e =>
+        {
+            counts.TryGetValue(e.Id, out var count);
+
+            var tags = e.EventTags
+                .Select(t => new EventTagDto(
+                    t.TagId,
+                    t.TagName,
+                    colors.TryGetValue(t.TagId, out var color) ? color : FallbackTagColor))
+                .ToList();
+
+            return new EventDto(
+                e.Id,
+                e.Title,
+                e.Description,
+                e.Location,
+                e.StartsAt,
+                e.EndsAt,
+                e.Capacity,
+                e.OrganizerId,
+                e.OrganizerName,
+                e.Status.ToString(),
+                e.Visibility.ToString(),
+                count.Going,
+                e.CreatedAt,
+                tags,
+                count.Maybe,
+                e.UpdatedAt);
+        }).ToList();
     }
 }

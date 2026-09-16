@@ -8,4 +8,5 @@ public record UpdateEventRequestDto(
     DateTime EndsAt,
     int Capacity,
     List<EventTagRequestDto> Tags,
-    string? Visibility = null);
+    string? Visibility = null,
+    List<Guid>? TagIds = null);

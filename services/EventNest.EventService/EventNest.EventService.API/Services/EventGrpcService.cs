@@ -28,7 +28,9 @@ public class EventGrpcService : EventNest.Shared.Infrastructure.Grpc.EventServic
             Title = evt.Title,
             OrganizerId = evt.OrganizerId.ToString(),
             MaxAttendees = evt.Capacity,
-            Status = evt.Status
+            Status = evt.Status,
+            StartsAt = evt.StartsAt.ToString("o"),
+            Location = evt.Location ?? string.Empty
         };
     }
 
@@ -47,7 +49,9 @@ public class EventGrpcService : EventNest.Shared.Infrastructure.Grpc.EventServic
             Title = e.Title,
             OrganizerId = e.OrganizerId.ToString(),
             MaxAttendees = e.Capacity,
-            Status = e.Status
+            Status = e.Status,
+            StartsAt = e.StartsAt.ToString("o"),
+            Location = e.Location ?? string.Empty
         }));
 
         return response;
