@@ -24,22 +24,4 @@ public class RoleRepository : IRoleRepository
         return await _context.Roles
             .FirstOrDefaultAsync(r => r.Id == id);
     }
-
-    public async Task<IReadOnlyList<Role>> GetAllAsync()
-    {
-        return await _context.Roles
-            .OrderBy(r => r.SortOrder)
-            .ToListAsync();
-    }
-
-    public async Task AddAsync(Role role)
-    {
-        await _context.Roles.AddAsync(role);
-        await _context.SaveChangesAsync();
-    }
-
-    public async Task<bool> AnyAsync()
-    {
-        return await _context.Roles.AnyAsync();
-    }
 }

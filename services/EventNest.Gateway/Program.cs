@@ -5,6 +5,14 @@ using Microsoft.IdentityModel.Tokens;
 
 var builder = WebApplication.CreateBuilder(args);
 
+var jwtSecretKey = builder.Configuration["Jwt:SecretKey"];
+if (string.IsNullOrWhiteSpace(jwtSecretKey) || jwtSecretKey.Length < 32 ||
+    (!builder.Environment.IsDevelopment() && jwtSecretKey == "YOUR_SECRET_KEY_HERE_MIN_32_CHARS_LONG!!"))
+{
+    throw new InvalidOperationException(
+        "Jwt:SecretKey must be a real secret of at least 32 characters; the placeholder is rejected outside Development.");
+}
+
 builder.WebHost.ConfigureKestrel(options =>
 {
     options.ListenAnyIP(5000, o => o.Protocols = Microsoft.AspNetCore.Server.Kestrel.Core.HttpProtocols.Http1);

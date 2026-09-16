@@ -1,8 +1,13 @@
 using EventNest.AuthService.API;
 using EventNest.AuthService.Application;
 using EventNest.AuthService.Infrastructure;
+using EventNest.Shared.Infrastructure.Configuration;
 
 var builder = WebApplication.CreateBuilder(args);
+
+JwtConfigurationGuard.Validate(
+    builder.Configuration["Jwt:SecretKey"],
+    builder.Environment.IsDevelopment());
 
 builder.WebHost.ConfigureKestrel(options =>
 {

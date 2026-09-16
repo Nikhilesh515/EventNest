@@ -35,12 +35,6 @@ public class UserRepository : IUserRepository
             .ToListAsync();
     }
 
-    public async Task<int> GetCountAsync()
-    {
-        return await _context.Users
-            .CountAsync(u => u.IsActive);
-    }
-
     public async Task AddAsync(User user)
     {
         await _context.Users.AddAsync(user);

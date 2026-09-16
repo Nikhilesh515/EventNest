@@ -3,8 +3,13 @@ using EventNest.RSVPService.API.Middleware;
 using EventNest.RSVPService.API.Services;
 using EventNest.RSVPService.Application;
 using EventNest.RSVPService.Infrastructure;
+using EventNest.Shared.Infrastructure.Configuration;
 
 var builder = WebApplication.CreateBuilder(args);
+
+JwtConfigurationGuard.Validate(
+    builder.Configuration["Jwt:SecretKey"],
+    builder.Environment.IsDevelopment());
 
 builder.WebHost.ConfigureKestrel(options =>
 {

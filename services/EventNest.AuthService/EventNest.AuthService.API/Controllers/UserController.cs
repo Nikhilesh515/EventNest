@@ -1,6 +1,7 @@
 using System.Security.Claims;
 using EventNest.Shared.Application.Authorization;
 using EventNest.Shared.Application.DTOs;
+using EventNest.Shared.Domain.Exceptions;
 using EventNest.AuthService.Application.DTOs.Users;
 using EventNest.AuthService.Application.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
@@ -21,17 +22,16 @@ public class UserController : ControllerBase
     }
 
     [HttpGet("me")]
-    public IActionResult GetCurrentUser()
+    public async Task<IActionResult> GetCurrentUser()
     {
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        var email = User.FindFirstValue(ClaimTypes.Email);
-        var name = User.FindFirstValue(ClaimTypes.Name);
-        var role = User.FindFirstValue(ClaimTypes.Role);
-
         if (string.IsNullOrEmpty(userId) || !Guid.TryParse(userId, out var id))
-            return Unauthorized(ApiResponseDto<object>.Fail(401, "Invalid token."));
+            throw new UnauthorizedException("Invalid token.");
 
-        var user = new UserDto(id, email ?? "", name ?? "", role ?? "User", true);
+        var user = await _userService.GetByIdAsync(id);
+        if (user is null)
+            throw new NotFoundException($"User with ID '{id}' was not found.");
+
         return Ok(ApiResponseDto<UserDto>.Ok(user));
     }
 

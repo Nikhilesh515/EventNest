@@ -47,8 +47,8 @@ public class AuthService : IAuthService
 
         await _userRepository.AddAsync(user);
 
-        var permissions = await _permissionStore.GetUserPermissionsAsync(user.Id);
-        var accessToken = _jwtTokenService.GenerateAccessToken(user, permissions);
+        await _permissionStore.GetUserPermissionsAsync(user.Id);
+        var accessToken = _jwtTokenService.GenerateAccessToken(user, defaultRole.Name);
         var refreshTokenValue = _jwtTokenService.GenerateRefreshToken();
 
         var refreshToken = RefreshToken.Create(
@@ -80,8 +80,8 @@ public class AuthService : IAuthService
         var role = await _roleRepository.GetByIdAsync(user.RoleId);
         var roleName = role?.Name ?? "User";
 
-        var permissions = await _permissionStore.GetUserPermissionsAsync(user.Id);
-        var accessToken = _jwtTokenService.GenerateAccessToken(user, permissions);
+        await _permissionStore.GetUserPermissionsAsync(user.Id);
+        var accessToken = _jwtTokenService.GenerateAccessToken(user, roleName);
         var refreshTokenValue = _jwtTokenService.GenerateRefreshToken();
 
         var refreshToken = RefreshToken.Create(
@@ -117,8 +117,8 @@ public class AuthService : IAuthService
         var role = await _roleRepository.GetByIdAsync(user.RoleId);
         var roleName = role?.Name ?? "User";
 
-        var permissions = await _permissionStore.GetUserPermissionsAsync(user.Id);
-        var newAccessToken = _jwtTokenService.GenerateAccessToken(user, permissions);
+        await _permissionStore.GetUserPermissionsAsync(user.Id);
+        var newAccessToken = _jwtTokenService.GenerateAccessToken(user, roleName);
         var newRefreshTokenValue = _jwtTokenService.GenerateRefreshToken();
 
         var newRefreshToken = RefreshToken.Create(

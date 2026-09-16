@@ -26,16 +26,6 @@ public class UserService : IUserService
         return new UserDto(user.Id, user.Email, user.DisplayName, role?.Name ?? "User", user.IsActive);
     }
 
-    public async Task<UserDto?> GetByEmailAsync(string email)
-    {
-        var user = await _userRepository.GetByEmailAsync(email);
-        if (user is null)
-            return null;
-
-        var role = await _roleRepository.GetByIdAsync(user.RoleId);
-        return new UserDto(user.Id, user.Email, user.DisplayName, role?.Name ?? "User", user.IsActive);
-    }
-
     public async Task<IReadOnlyList<UserDto>> GetAllAsync(int page, int pageSize)
     {
         var users = await _userRepository.GetAllAsync(page, pageSize);

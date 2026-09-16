@@ -18,7 +18,7 @@ public class JwtTokenService : IJwtTokenService
         _configuration = configuration;
     }
 
-    public string GenerateAccessToken(User user, IReadOnlyList<string> permissions)
+    public string GenerateAccessToken(User user, string roleName)
     {
         var key = new SymmetricSecurityKey(
             Encoding.UTF8.GetBytes(_configuration["Jwt:SecretKey"]!));
@@ -28,23 +28,12 @@ public class JwtTokenService : IJwtTokenService
             new(ClaimTypes.NameIdentifier, user.Id.ToString()),
             new(ClaimTypes.Email, user.Email),
             new(ClaimTypes.Name, user.DisplayName),
+            new(ClaimTypes.Role, roleName),
             new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
             new(JwtRegisteredClaimNames.Iat,
                 DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString(),
                 ClaimValueTypes.Integer64)
         };
-
-        // Add role claim if available
-        if (user.Role != null)
-        {
-            claims.Add(new Claim(ClaimTypes.Role, user.Role.Name));
-        }
-
-        // Add permissions as claims
-        foreach (var permission in permissions)
-        {
-            claims.Add(new Claim("permission", permission));
-        }
 
         var token = new JwtSecurityToken(
             issuer: _configuration["Jwt:Issuer"],

@@ -3,8 +3,13 @@ using EventNest.EventService.API.Middleware;
 using EventNest.EventService.API.Services;
 using EventNest.EventService.Application;
 using EventNest.EventService.Infrastructure;
+using EventNest.Shared.Infrastructure.Configuration;
 
 var builder = WebApplication.CreateBuilder(args);
+
+JwtConfigurationGuard.Validate(
+    builder.Configuration["Jwt:SecretKey"],
+    builder.Environment.IsDevelopment());
 
 builder.WebHost.ConfigureKestrel(options =>
 {

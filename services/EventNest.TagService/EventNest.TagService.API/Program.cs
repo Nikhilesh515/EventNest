@@ -3,8 +3,13 @@ using EventNest.TagService.API.Middleware;
 using EventNest.TagService.API.Services;
 using EventNest.TagService.Application;
 using EventNest.TagService.Infrastructure;
+using EventNest.Shared.Infrastructure.Configuration;
 
 var builder = WebApplication.CreateBuilder(args);
+
+JwtConfigurationGuard.Validate(
+    builder.Configuration["Jwt:SecretKey"],
+    builder.Environment.IsDevelopment());
 
 builder.WebHost.ConfigureKestrel(options =>
 {
