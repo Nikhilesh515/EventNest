@@ -51,10 +51,23 @@ public class UserController : ControllerBase
 
     [HttpGet]
     [Authorize(EventNestPermissions.Users.View)]
-    public async Task<IActionResult> GetAll([FromQuery] int page = 1, [FromQuery] int pageSize = 20)
+    public async Task<IActionResult> GetAll(
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 20,
+        [FromQuery] string? search = null,
+        [FromQuery] Guid? role = null)
     {
-        var users = await _userService.GetAllAsync(page, pageSize);
-        return Ok(ApiResponseDto<IReadOnlyList<UserDto>>.Ok(users));
+        var users = await _userService.GetPagedAsync(page, pageSize, search, role);
+        return Ok(ApiResponseDto<PagedResultDto<UserDto>>.Ok(users));
+    }
+
+    [HttpPost]
+    [Authorize(EventNestPermissions.Users.Manage)]
+    public async Task<IActionResult> Create([FromBody] CreateUserRequestDto request)
+    {
+        var user = await _userService.CreateAsync(request);
+        return CreatedAtAction(nameof(GetById), new { id = user.Id },
+            ApiResponseDto<UserDto>.Ok(user));
     }
 
     [HttpPut("{id:guid}")]

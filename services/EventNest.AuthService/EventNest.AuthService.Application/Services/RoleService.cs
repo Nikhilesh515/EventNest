@@ -118,7 +118,7 @@ public class RoleService : IRoleService
         await _userRepository.UpdateAsync(user);
         await _permissionStore.InvalidateUserAsync(userId);
 
-        return new UserDto(user.Id, user.Email, user.DisplayName, role.Name, user.IsActive);
+        return new UserDto(user.Id, user.Email, user.DisplayName, role.Name, role.Id, user.IsActive);
     }
 
     private async Task<RoleDto> MapAsync(Role role)

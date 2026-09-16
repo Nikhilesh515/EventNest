@@ -62,7 +62,7 @@ public class AuthService : IAuthService
             accessToken,
             refreshTokenValue,
             _jwtTokenService.GetAccessTokenExpirySeconds(),
-            new UserDto(user.Id, user.Email, user.DisplayName, defaultRole.Name, user.IsActive));
+            new UserDto(user.Id, user.Email, user.DisplayName, defaultRole.Name, user.RoleId, user.IsActive));
     }
 
     public async Task<AuthResponseDto> LoginAsync(string email, string password, string? ipAddress)
@@ -95,7 +95,7 @@ public class AuthService : IAuthService
             accessToken,
             refreshTokenValue,
             _jwtTokenService.GetAccessTokenExpirySeconds(),
-            new UserDto(user.Id, user.Email, user.DisplayName, roleName, user.IsActive));
+            new UserDto(user.Id, user.Email, user.DisplayName, roleName, user.RoleId, user.IsActive));
     }
 
     public async Task<AuthResponseDto> RefreshTokenAsync(string refreshToken, string? ipAddress)
@@ -111,7 +111,6 @@ public class AuthService : IAuthService
         if (!user.IsActive)
             throw new UnauthorizedException("User account is deactivated.");
 
-        // Revoke old refresh token
         await _refreshTokenRepository.RevokeAsync(refreshToken, ipAddress ?? "unknown");
 
         var role = await _roleRepository.GetByIdAsync(user.RoleId);
@@ -132,7 +131,7 @@ public class AuthService : IAuthService
             newAccessToken,
             newRefreshTokenValue,
             _jwtTokenService.GetAccessTokenExpirySeconds(),
-            new UserDto(user.Id, user.Email, user.DisplayName, roleName, user.IsActive));
+            new UserDto(user.Id, user.Email, user.DisplayName, roleName, user.RoleId, user.IsActive));
     }
 
     public async Task LogoutAsync(string refreshToken, string? ipAddress)
