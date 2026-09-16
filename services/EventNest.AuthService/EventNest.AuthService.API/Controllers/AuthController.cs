@@ -16,31 +16,34 @@ public class AuthController : ControllerBase
         _authService = authService;
     }
 
+    private string? ClientIpAddress => HttpContext.Connection.RemoteIpAddress?.ToString();
+
     [HttpPost("register")]
     public async Task<IActionResult> Register([FromBody] RegisterRequestDto request)
     {
-        var result = await _authService.RegisterAsync(request.Email, request.DisplayName, request.Password);
+        var result = await _authService.RegisterAsync(
+            request.Email, request.DisplayName, request.Password, ClientIpAddress);
         return Ok(ApiResponseDto<AuthResponseDto>.Ok(result));
     }
 
     [HttpPost("login")]
     public async Task<IActionResult> Login([FromBody] LoginRequestDto request)
     {
-        var result = await _authService.LoginAsync(request.Email, request.Password);
+        var result = await _authService.LoginAsync(request.Email, request.Password, ClientIpAddress);
         return Ok(ApiResponseDto<AuthResponseDto>.Ok(result));
     }
 
     [HttpPost("refresh")]
     public async Task<IActionResult> Refresh([FromBody] RefreshRequestDto request)
     {
-        var result = await _authService.RefreshTokenAsync(request.RefreshToken);
+        var result = await _authService.RefreshTokenAsync(request.RefreshToken, ClientIpAddress);
         return Ok(ApiResponseDto<AuthResponseDto>.Ok(result));
     }
 
     [HttpPost("logout")]
     public async Task<IActionResult> Logout([FromBody] LogoutRequestDto request)
     {
-        await _authService.LogoutAsync(request.RefreshToken);
+        await _authService.LogoutAsync(request.RefreshToken, ClientIpAddress);
         return NoContent();
     }
 }

@@ -8,4 +8,6 @@ public interface IJwtTokenService
     string GenerateRefreshToken();
     string? ValidateToken(string token);
     Guid? GetUserIdFromToken(string token);
+    DateTime GetRefreshTokenExpiryUtc();
+    int GetAccessTokenExpirySeconds();
 }

@@ -18,6 +18,12 @@ public class JwtTokenService : IJwtTokenService
         _configuration = configuration;
     }
 
+    private int AccessTokenExpiryMinutes =>
+        int.Parse(_configuration["Jwt:AccessTokenExpiryMinutes"] ?? "60");
+
+    private int RefreshTokenExpiryDays =>
+        int.Parse(_configuration["Jwt:RefreshTokenExpiryDays"] ?? "30");
+
     public string GenerateAccessToken(User user, string roleName)
     {
         var key = new SymmetricSecurityKey(
@@ -39,8 +45,7 @@ public class JwtTokenService : IJwtTokenService
             issuer: _configuration["Jwt:Issuer"],
             audience: _configuration["Jwt:Audience"],
             claims: claims,
-            expires: DateTime.UtcNow.AddMinutes(
-                int.Parse(_configuration["Jwt:AccessTokenExpiryMinutes"] ?? "60")),
+            expires: DateTime.UtcNow.AddMinutes(AccessTokenExpiryMinutes),
             signingCredentials: new SigningCredentials(
                 key, SecurityAlgorithms.HmacSha256));
 
@@ -53,6 +58,16 @@ public class JwtTokenService : IJwtTokenService
         using var rng = RandomNumberGenerator.Create();
         rng.GetBytes(randomBytes);
         return Convert.ToBase64String(randomBytes);
+    }
+
+    public int GetAccessTokenExpirySeconds()
+    {
+        return AccessTokenExpiryMinutes * 60;
+    }
+
+    public DateTime GetRefreshTokenExpiryUtc()
+    {
+        return DateTime.UtcNow.AddDays(RefreshTokenExpiryDays);
     }
 
     public string? ValidateToken(string token)

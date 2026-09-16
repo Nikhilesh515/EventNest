@@ -32,7 +32,7 @@ public class AuthService : IAuthService
         _permissionStore = permissionStore;
     }
 
-    public async Task<AuthResponseDto> RegisterAsync(string email, string displayName, string password)
+    public async Task<AuthResponseDto> RegisterAsync(string email, string displayName, string password, string? ipAddress)
     {
         var existingUser = await _userRepository.GetByEmailAsync(email);
         if (existingUser is not null)
@@ -53,19 +53,19 @@ public class AuthService : IAuthService
 
         var refreshToken = RefreshToken.Create(
             refreshTokenValue,
-            DateTime.UtcNow.AddDays(30),
-            "system",
+            _jwtTokenService.GetRefreshTokenExpiryUtc(),
+            ipAddress ?? "unknown",
             user.Id);
         await _refreshTokenRepository.AddAsync(refreshToken);
 
         return new AuthResponseDto(
             accessToken,
             refreshTokenValue,
-            3600,
+            _jwtTokenService.GetAccessTokenExpirySeconds(),
             new UserDto(user.Id, user.Email, user.DisplayName, defaultRole.Name, user.IsActive));
     }
 
-    public async Task<AuthResponseDto> LoginAsync(string email, string password)
+    public async Task<AuthResponseDto> LoginAsync(string email, string password, string? ipAddress)
     {
         var user = await _userRepository.GetByEmailAsync(email);
         if (user is null)
@@ -86,19 +86,19 @@ public class AuthService : IAuthService
 
         var refreshToken = RefreshToken.Create(
             refreshTokenValue,
-            DateTime.UtcNow.AddDays(30),
-            "system",
+            _jwtTokenService.GetRefreshTokenExpiryUtc(),
+            ipAddress ?? "unknown",
             user.Id);
         await _refreshTokenRepository.AddAsync(refreshToken);
 
         return new AuthResponseDto(
             accessToken,
             refreshTokenValue,
-            3600,
+            _jwtTokenService.GetAccessTokenExpirySeconds(),
             new UserDto(user.Id, user.Email, user.DisplayName, roleName, user.IsActive));
     }
 
-    public async Task<AuthResponseDto> RefreshTokenAsync(string refreshToken)
+    public async Task<AuthResponseDto> RefreshTokenAsync(string refreshToken, string? ipAddress)
     {
         var storedToken = await _refreshTokenRepository.GetByTokenAsync(refreshToken);
         if (storedToken is null || !storedToken.IsActive)
@@ -112,7 +112,7 @@ public class AuthService : IAuthService
             throw new UnauthorizedException("User account is deactivated.");
 
         // Revoke old refresh token
-        await _refreshTokenRepository.RevokeAsync(refreshToken, "system");
+        await _refreshTokenRepository.RevokeAsync(refreshToken, ipAddress ?? "unknown");
 
         var role = await _roleRepository.GetByIdAsync(user.RoleId);
         var roleName = role?.Name ?? "User";
@@ -123,20 +123,20 @@ public class AuthService : IAuthService
 
         var newRefreshToken = RefreshToken.Create(
             newRefreshTokenValue,
-            DateTime.UtcNow.AddDays(30),
-            "system",
+            _jwtTokenService.GetRefreshTokenExpiryUtc(),
+            ipAddress ?? "unknown",
             user.Id);
         await _refreshTokenRepository.AddAsync(newRefreshToken);
 
         return new AuthResponseDto(
             newAccessToken,
             newRefreshTokenValue,
-            3600,
+            _jwtTokenService.GetAccessTokenExpirySeconds(),
             new UserDto(user.Id, user.Email, user.DisplayName, roleName, user.IsActive));
     }
 
-    public async Task LogoutAsync(string refreshToken)
+    public async Task LogoutAsync(string refreshToken, string? ipAddress)
     {
-        await _refreshTokenRepository.RevokeAsync(refreshToken, "system");
+        await _refreshTokenRepository.RevokeAsync(refreshToken, ipAddress ?? "unknown");
     }
 }

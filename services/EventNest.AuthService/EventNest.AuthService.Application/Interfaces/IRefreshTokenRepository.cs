@@ -7,4 +7,5 @@ public interface IRefreshTokenRepository
     Task<RefreshToken?> GetByTokenAsync(string token);
     Task AddAsync(RefreshToken refreshToken);
     Task RevokeAsync(string token, string? revokedByIp);
+    Task<int> DeleteExpiredAsync(DateTime utcNow, CancellationToken cancellationToken = default);
 }

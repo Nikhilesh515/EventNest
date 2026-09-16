@@ -1,5 +1,6 @@
 using System.Text;
 using EventNest.AuthService.API.Authorization;
+using EventNest.AuthService.API.BackgroundServices;
 using EventNest.AuthService.API.Middleware;
 using EventNest.AuthService.API.SeedData;
 using EventNest.AuthService.API.Services;
@@ -8,6 +9,7 @@ using EventNest.AuthService.Application.Interfaces;
 using EventNest.AuthService.Infrastructure.Data;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
@@ -71,6 +73,8 @@ public static class DependencyInjection
         // Authorization handler
         services.AddScoped<IAuthorizationHandler, PermissionHandler>();
 
+        services.AddHostedService<RefreshTokenCleanupService>();
+
         // Health Checks
         services.AddHealthChecks();
 
@@ -94,6 +98,15 @@ public static class DependencyInjection
 
     public static void UseApiMiddleware(this WebApplication app)
     {
+        var forwardedHeaders = new ForwardedHeadersOptions
+        {
+            ForwardedHeaders = ForwardedHeaders.XForwardedFor,
+            ForwardLimit = 1
+        };
+        forwardedHeaders.KnownProxies.Clear();
+        forwardedHeaders.KnownIPNetworks.Clear();
+        app.UseForwardedHeaders(forwardedHeaders);
+
         if (app.Environment.IsDevelopment())
         {
             app.UseSwagger();

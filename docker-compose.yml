@@ -38,6 +38,8 @@ services:
     networks:
       - eventnest-internal
 
+  # Provisioned for the deferred async-messaging design (see "Architecture Plan/06-Message-Broker.md").
+  # No publisher/consumer is wired yet; kept intentionally so the topology is ready when messaging lands.
   rabbitmq:
     image: rabbitmq:3-management-alpine
     container_name: eventnest-rabbitmq
