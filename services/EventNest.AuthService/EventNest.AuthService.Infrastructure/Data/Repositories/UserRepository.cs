@@ -35,6 +35,24 @@ public class UserRepository : IUserRepository
             .ToListAsync();
     }
 
+    public async Task<int> CountByRoleIdAsync(Guid roleId)
+    {
+        return await _context.Users.CountAsync(u => u.RoleId == roleId);
+    }
+
+    public async Task<int> CountActiveByRoleIdAsync(Guid roleId)
+    {
+        return await _context.Users.CountAsync(u => u.RoleId == roleId && u.IsActive);
+    }
+
+    public async Task<IReadOnlyList<Guid>> GetUserIdsByRoleIdAsync(Guid roleId)
+    {
+        return await _context.Users
+            .Where(u => u.RoleId == roleId)
+            .Select(u => u.Id)
+            .ToListAsync();
+    }
+
     public async Task AddAsync(User user)
     {
         await _context.Users.AddAsync(user);

@@ -54,4 +54,18 @@ public static class EventNestPermissions
         ["Admin"] = new(),
         ["SuperAdmin"] = new()
     };
+
+    public static readonly IReadOnlyList<string> AllNames =
+        All.SelectMany(g => g.Value).Distinct().ToList();
+
+    public static readonly HashSet<string> BuiltInRoleNames = new(StringComparer.Ordinal)
+    {
+        "User", "Organizer", "Moderator", "Admin", "SuperAdmin"
+    };
+
+    public static bool IsValid(string permissionName) =>
+        AllNames.Contains(permissionName);
+
+    public static bool IsBuiltInRole(string roleName) =>
+        BuiltInRoleNames.Contains(roleName);
 }

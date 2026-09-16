@@ -42,7 +42,7 @@ public class PermissionService : IPermissionService
         if (user is null)
             throw new NotFoundException($"User with ID '{userId}' was not found.");
 
-        if (!IsValidPermission(permissionName))
+        if (!EventNestPermissions.IsValid(permissionName))
             throw new ValidationException(new Dictionary<string, string[]>
             {
                 ["permissionName"] = new[] { $"Permission '{permissionName}' is not valid." }
@@ -80,25 +80,6 @@ public class PermissionService : IPermissionService
 
         var permissions = await _permissionStore.GetUserPermissionsAsync(userId);
         return permissions.Contains(permissionName);
-    }
-
-    private static bool IsValidPermission(string permissionName)
-    {
-        return EventNestPermissions.Events.View == permissionName ||
-               EventNestPermissions.Events.Create == permissionName ||
-               EventNestPermissions.Events.Edit == permissionName ||
-               EventNestPermissions.Events.Delete == permissionName ||
-               EventNestPermissions.Tags.View == permissionName ||
-               EventNestPermissions.Tags.Create == permissionName ||
-               EventNestPermissions.Tags.Edit == permissionName ||
-               EventNestPermissions.Tags.Delete == permissionName ||
-                EventNestPermissions.RSVPs.View == permissionName ||
-                EventNestPermissions.RSVPs.Create == permissionName ||
-                EventNestPermissions.RSVPs.Edit == permissionName ||
-                EventNestPermissions.RSVPs.Manage == permissionName ||
-                EventNestPermissions.RSVPs.Cancel == permissionName ||
-               EventNestPermissions.Users.View == permissionName ||
-               EventNestPermissions.Users.Manage == permissionName;
     }
 
     private static (string Group, string DisplayName) GetPermissionInfo(string permissionName)

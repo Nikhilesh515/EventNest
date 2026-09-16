@@ -40,17 +40,27 @@ public class PermissionStore : IPermissionStore
         if (role is null)
             return Array.Empty<string>();
 
-        // Get role defaults
-        var permissions = new List<string>();
-        if (EventNestPermissions.RoleDefaults.TryGetValue(role.Name, out var rolePerms))
-        {
-            permissions.AddRange(rolePerms);
-        }
+        var rolePermissions = await _context.RolePermissions
+            .Where(rp => rp.RoleId == user.RoleId)
+            .Select(rp => rp.PermissionName)
+            .ToListAsync();
 
-        // Admin and SuperAdmin get all permissions
-        if (role.Name == "Admin" || role.Name == "SuperAdmin")
+        List<string> permissions;
+        if (rolePermissions.Count > 0)
         {
-            permissions = EventNestPermissions.All.SelectMany(g => g.Value).Distinct().ToList();
+            permissions = rolePermissions;
+        }
+        else if (role.Name is "Admin" or "SuperAdmin")
+        {
+            permissions = EventNestPermissions.AllNames.ToList();
+        }
+        else if (EventNestPermissions.RoleDefaults.TryGetValue(role.Name, out var rolePerms))
+        {
+            permissions = rolePerms.ToList();
+        }
+        else
+        {
+            permissions = new List<string>();
         }
 
         // Get user-level overrides
@@ -77,8 +87,7 @@ public class PermissionStore : IPermissionStore
         await _context.PermissionGrants.AddAsync(grant);
         await _context.SaveChangesAsync();
 
-        // Invalidate cache
-        await _cacheService.RemoveAsync($"user:{grant.UserId}:permissions");
+        await RefreshUserCacheAsync(grant.UserId);
     }
 
     public async Task RemoveGrantAsync(Guid userId, string permissionName)
@@ -91,8 +100,7 @@ public class PermissionStore : IPermissionStore
             _context.PermissionGrants.Remove(grant);
             await _context.SaveChangesAsync();
 
-            // Invalidate cache
-            await _cacheService.RemoveAsync($"user:{userId}:permissions");
+            await RefreshUserCacheAsync(userId);
         }
     }
 
@@ -100,5 +108,24 @@ public class PermissionStore : IPermissionStore
     {
         return await _context.PermissionGrants
             .FirstOrDefaultAsync(g => g.UserId == userId && g.PermissionName == permissionName);
+    }
+
+    public Task InvalidateUserAsync(Guid userId)
+    {
+        return RefreshUserCacheAsync(userId);
+    }
+
+    public async Task InvalidateRoleAsync(Guid roleId)
+    {
+        var userIds = await _userRepository.GetUserIdsByRoleIdAsync(roleId);
+
+        foreach (var userId in userIds)
+            await RefreshUserCacheAsync(userId);
+    }
+
+    private async Task RefreshUserCacheAsync(Guid userId)
+    {
+        await _cacheService.RemoveAsync($"user:{userId}:permissions");
+        await GetUserPermissionsAsync(userId);
     }
 }

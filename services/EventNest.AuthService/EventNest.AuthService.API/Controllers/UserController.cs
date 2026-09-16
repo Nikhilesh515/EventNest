@@ -2,6 +2,7 @@ using System.Security.Claims;
 using EventNest.Shared.Application.Authorization;
 using EventNest.Shared.Application.DTOs;
 using EventNest.Shared.Domain.Exceptions;
+using EventNest.AuthService.Application.DTOs.Roles;
 using EventNest.AuthService.Application.DTOs.Users;
 using EventNest.AuthService.Application.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
@@ -15,10 +16,12 @@ namespace EventNest.AuthService.API.Controllers;
 public class UserController : ControllerBase
 {
     private readonly IUserService _userService;
+    private readonly IRoleService _roleService;
 
-    public UserController(IUserService userService)
+    public UserController(IUserService userService, IRoleService roleService)
     {
         _userService = userService;
+        _roleService = roleService;
     }
 
     [HttpGet("me")]
@@ -68,5 +71,13 @@ public class UserController : ControllerBase
     {
         await _userService.DeactivateAsync(id);
         return NoContent();
+    }
+
+    [HttpPut("{id:guid}/role")]
+    [Authorize(EventNestPermissions.Users.Manage)]
+    public async Task<IActionResult> AssignRole(Guid id, [FromBody] AssignRoleRequestDto request)
+    {
+        var user = await _roleService.AssignRoleAsync(id, request.RoleId);
+        return Ok(ApiResponseDto<UserDto>.Ok(user));
     }
 }

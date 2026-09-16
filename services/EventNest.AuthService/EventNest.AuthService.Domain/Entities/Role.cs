@@ -23,4 +23,12 @@ public class Role : BaseEntity
             CreatedAt = DateTime.UtcNow
         };
     }
+
+    public void UpdateDetails(string displayName, string? description, int sortOrder)
+    {
+        DisplayName = displayName;
+        Description = description;
+        SortOrder = sortOrder;
+        UpdatedAt = DateTime.UtcNow;
+    }
 }

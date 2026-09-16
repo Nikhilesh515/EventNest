@@ -94,6 +94,7 @@ public static class DependencyInjection
         var passwordHasher = scope.ServiceProvider.GetRequiredService<IPasswordHasher>();
         await RoleSeedData.SeedAsync(context);
         await AdminSeedData.SeedAsync(context, passwordHasher);
+        await RolePermissionSeedData.SeedAsync(context);
     }
 
     public static void UseApiMiddleware(this WebApplication app)
