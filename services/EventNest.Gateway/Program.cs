@@ -77,12 +77,13 @@ var app = builder.Build();
 
 app.UseMiddleware<GatewayExceptionHandlerMiddleware>();
 app.UseMiddleware<RequestLoggingMiddleware>();
-app.UseMiddleware<RateLimitMiddleware>();
 
 app.UseMiddleware<CorsMiddleware>();
 app.UseCors("AllowFrontend");
 app.UseAuthentication();
 app.UseAuthorization();
+
+app.UseMiddleware<RateLimitMiddleware>();
 
 app.MapHealthChecks("/health", new()
 {
