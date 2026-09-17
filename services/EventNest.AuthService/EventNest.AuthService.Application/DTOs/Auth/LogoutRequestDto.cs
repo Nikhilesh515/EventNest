@@ -1,3 +1,6 @@
 namespace EventNest.AuthService.Application.DTOs.Auth;
 
-public record LogoutRequestDto(string RefreshToken);
+public class LogoutRequestDto
+{
+    public string RefreshToken { get; init; } = string.Empty;
+}

@@ -1,3 +1,6 @@
 namespace EventNest.AuthService.Application.DTOs.Auth;
 
-public record RefreshRequestDto(string RefreshToken);
+public class RefreshRequestDto
+{
+    public string RefreshToken { get; init; } = string.Empty;
+}

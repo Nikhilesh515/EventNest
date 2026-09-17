@@ -1,9 +1,11 @@
 using EventNest.AuthService.Application.DTOs.Auth;
 using EventNest.AuthService.Application.DTOs.Users;
 using EventNest.AuthService.Application.Interfaces;
+using EventNest.AuthService.Application.Options;
 using EventNest.AuthService.Application.Services.Interfaces;
 using EventNest.AuthService.Domain.Entities;
 using EventNest.Shared.Domain.Exceptions;
+using Microsoft.Extensions.Options;
 
 namespace EventNest.AuthService.Application.Services;
 
@@ -15,6 +17,8 @@ public class AuthService : IAuthService
     private readonly IJwtTokenService _jwtTokenService;
     private readonly IPasswordHasher _passwordHasher;
     private readonly IPermissionStore _permissionStore;
+    private readonly ITokenHasher _tokenHasher;
+    private readonly AuthOptions _options;
 
     public AuthService(
         IUserRepository userRepository,
@@ -22,7 +26,9 @@ public class AuthService : IAuthService
         IRefreshTokenRepository refreshTokenRepository,
         IJwtTokenService jwtTokenService,
         IPasswordHasher passwordHasher,
-        IPermissionStore permissionStore)
+        IPermissionStore permissionStore,
+        ITokenHasher tokenHasher,
+        IOptions<AuthOptions> options)
     {
         _userRepository = userRepository;
         _roleRepository = roleRepository;
@@ -30,6 +36,8 @@ public class AuthService : IAuthService
         _jwtTokenService = jwtTokenService;
         _passwordHasher = passwordHasher;
         _permissionStore = permissionStore;
+        _tokenHasher = tokenHasher;
+        _options = options.Value;
     }
 
     public async Task<AuthResponseDto> RegisterAsync(string email, string displayName, string password, string? ipAddress)
@@ -52,17 +60,19 @@ public class AuthService : IAuthService
         var refreshTokenValue = _jwtTokenService.GenerateRefreshToken();
 
         var refreshToken = RefreshToken.Create(
-            refreshTokenValue,
+            _tokenHasher.Hash(refreshTokenValue),
             _jwtTokenService.GetRefreshTokenExpiryUtc(),
-            ipAddress ?? "unknown",
+            ipAddress,
             user.Id);
         await _refreshTokenRepository.AddAsync(refreshToken);
 
         return new AuthResponseDto(
             accessToken,
-            refreshTokenValue,
             _jwtTokenService.GetAccessTokenExpirySeconds(),
-            new UserDto(user.Id, user.Email, user.DisplayName, defaultRole.Name, user.RoleId, user.IsActive));
+            new UserDto(user.Id, user.Email, user.DisplayName, defaultRole.Name, user.RoleId, user.IsActive))
+        {
+            RefreshTokenValue = refreshTokenValue
+        };
     }
 
     public async Task<AuthResponseDto> LoginAsync(string email, string password, string? ipAddress)
@@ -85,24 +95,53 @@ public class AuthService : IAuthService
         var refreshTokenValue = _jwtTokenService.GenerateRefreshToken();
 
         var refreshToken = RefreshToken.Create(
-            refreshTokenValue,
+            _tokenHasher.Hash(refreshTokenValue),
             _jwtTokenService.GetRefreshTokenExpiryUtc(),
-            ipAddress ?? "unknown",
+            ipAddress,
             user.Id);
         await _refreshTokenRepository.AddAsync(refreshToken);
 
         return new AuthResponseDto(
             accessToken,
-            refreshTokenValue,
             _jwtTokenService.GetAccessTokenExpirySeconds(),
-            new UserDto(user.Id, user.Email, user.DisplayName, roleName, user.RoleId, user.IsActive));
+            new UserDto(user.Id, user.Email, user.DisplayName, roleName, user.RoleId, user.IsActive))
+        {
+            RefreshTokenValue = refreshTokenValue
+        };
     }
 
     public async Task<AuthResponseDto> RefreshTokenAsync(string refreshToken, string? ipAddress)
     {
-        var storedToken = await _refreshTokenRepository.GetByTokenAsync(refreshToken);
-        if (storedToken is null || !storedToken.IsActive)
+        var tokenHash = _tokenHasher.Hash(refreshToken);
+        var storedToken = await _refreshTokenRepository.GetByTokenHashAsync(tokenHash);
+
+        if (storedToken is null)
             throw new UnauthorizedException("Invalid refresh token.");
+
+        if (storedToken.IsExpired)
+            throw new UnauthorizedException("Refresh token has expired.");
+
+        if (storedToken.IsRevoked)
+        {
+            var rotatedRecently = storedToken.ReplacedByTokenHash is not null
+                && storedToken.RevokedAt.HasValue
+                && (DateTime.UtcNow - storedToken.RevokedAt.Value).TotalSeconds < _options.RefreshRotationGraceSeconds;
+
+            if (rotatedRecently)
+            {
+                // Multi-tab grace: allow through, re-rotate
+            }
+            else if (storedToken.ReplacedByTokenHash is not null)
+            {
+                // Reuse detected: revoke ALL active tokens for this user
+                await _refreshTokenRepository.RevokeAllActiveByUserIdAsync(storedToken.UserId);
+                throw new UnauthorizedException("Refresh token reuse detected. All sessions revoked.");
+            }
+            else
+            {
+                throw new UnauthorizedException("Refresh token has been revoked.");
+            }
+        }
 
         var user = await _userRepository.GetByIdAsync(storedToken.UserId);
         if (user is null)
@@ -111,31 +150,43 @@ public class AuthService : IAuthService
         if (!user.IsActive)
             throw new UnauthorizedException("User account is deactivated.");
 
-        await _refreshTokenRepository.RevokeAsync(refreshToken, ipAddress ?? "unknown");
-
         var role = await _roleRepository.GetByIdAsync(user.RoleId);
         var roleName = role?.Name ?? "User";
 
-        await _permissionStore.GetUserPermissionsAsync(user.Id);
-        var newAccessToken = _jwtTokenService.GenerateAccessToken(user, roleName);
         var newRefreshTokenValue = _jwtTokenService.GenerateRefreshToken();
+        var newRefreshTokenHash = _tokenHasher.Hash(newRefreshTokenValue);
+
+        if (!storedToken.IsRevoked)
+        {
+            await _refreshTokenRepository.RevokeAsync(tokenHash, newRefreshTokenHash);
+        }
 
         var newRefreshToken = RefreshToken.Create(
-            newRefreshTokenValue,
+            newRefreshTokenHash,
             _jwtTokenService.GetRefreshTokenExpiryUtc(),
-            ipAddress ?? "unknown",
+            ipAddress,
             user.Id);
         await _refreshTokenRepository.AddAsync(newRefreshToken);
 
+        await _permissionStore.GetUserPermissionsAsync(user.Id);
+        var newAccessToken = _jwtTokenService.GenerateAccessToken(user, roleName);
+
         return new AuthResponseDto(
             newAccessToken,
-            newRefreshTokenValue,
             _jwtTokenService.GetAccessTokenExpirySeconds(),
-            new UserDto(user.Id, user.Email, user.DisplayName, roleName, user.RoleId, user.IsActive));
+            new UserDto(user.Id, user.Email, user.DisplayName, roleName, user.RoleId, user.IsActive))
+        {
+            RefreshTokenValue = newRefreshTokenValue
+        };
     }
 
     public async Task LogoutAsync(string refreshToken, string? ipAddress)
     {
-        await _refreshTokenRepository.RevokeAsync(refreshToken, ipAddress ?? "unknown");
+        var tokenHash = _tokenHasher.Hash(refreshToken);
+        var storedToken = await _refreshTokenRepository.GetByTokenHashAsync(tokenHash);
+        if (storedToken is not null && !storedToken.IsRevoked)
+        {
+            await _refreshTokenRepository.RevokeAsync(tokenHash);
+        }
     }
 }

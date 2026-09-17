@@ -4,8 +4,9 @@ namespace EventNest.AuthService.Application.Interfaces;
 
 public interface IRefreshTokenRepository
 {
-    Task<RefreshToken?> GetByTokenAsync(string token);
+    Task<RefreshToken?> GetByTokenHashAsync(string tokenHash);
     Task AddAsync(RefreshToken refreshToken);
-    Task RevokeAsync(string token, string? revokedByIp);
+    Task RevokeAsync(string tokenHash, string? replacedByTokenHash = null);
+    Task RevokeAllActiveByUserIdAsync(Guid userId);
     Task<int> DeleteExpiredAsync(DateTime utcNow, CancellationToken cancellationToken = default);
 }

@@ -13,10 +13,10 @@ public class RefreshTokenRepository : IRefreshTokenRepository
         _context = context;
     }
 
-    public async Task<RefreshToken?> GetByTokenAsync(string token)
+    public async Task<RefreshToken?> GetByTokenHashAsync(string tokenHash)
     {
         return await _context.RefreshTokens
-            .FirstOrDefaultAsync(t => t.Token == token);
+            .FirstOrDefaultAsync(t => t.TokenHash == tokenHash);
     }
 
     public async Task AddAsync(RefreshToken refreshToken)
@@ -25,14 +25,21 @@ public class RefreshTokenRepository : IRefreshTokenRepository
         await _context.SaveChangesAsync();
     }
 
-    public async Task RevokeAsync(string token, string? revokedByIp)
+    public async Task RevokeAsync(string tokenHash, string? replacedByTokenHash = null)
     {
-        var refreshToken = await GetByTokenAsync(token);
-        if (refreshToken is not null)
+        var token = await GetByTokenHashAsync(tokenHash);
+        if (token is not null && !token.IsRevoked)
         {
-            refreshToken.Revoke(revokedByIp);
+            token.Revoke(replacedByTokenHash);
             await _context.SaveChangesAsync();
         }
+    }
+
+    public async Task RevokeAllActiveByUserIdAsync(Guid userId)
+    {
+        await _context.RefreshTokens
+            .Where(t => t.UserId == userId && t.RevokedAt == null)
+            .ExecuteUpdateAsync(s => s.SetProperty(t => t.RevokedAt, DateTime.UtcNow));
     }
 
     public async Task<int> DeleteExpiredAsync(DateTime utcNow, CancellationToken cancellationToken = default)

@@ -15,27 +15,25 @@ public class RefreshTokenConfiguration : IEntityTypeConfiguration<RefreshToken>
         builder.Property(rt => rt.Id)
             .HasColumnName("id");
 
-        builder.Property(rt => rt.Token)
-            .HasColumnName("token")
-            .HasMaxLength(512)
+        builder.Property(rt => rt.TokenHash)
+            .HasColumnName("token_hash")
+            .HasMaxLength(64)
             .IsRequired();
 
         builder.Property(rt => rt.ExpiresAt)
             .HasColumnName("expires_at")
             .IsRequired();
 
-        builder.Property(rt => rt.IsRevoked)
-            .HasColumnName("is_revoked")
-            .HasDefaultValue(false);
+        builder.Property(rt => rt.RevokedAt)
+            .HasColumnName("revoked_at");
 
-        builder.Property(rt => rt.RevokedByIp)
-            .HasColumnName("revoked_by_ip")
-            .HasMaxLength(45);
+        builder.Property(rt => rt.ReplacedByTokenHash)
+            .HasColumnName("replaced_by_token_hash")
+            .HasMaxLength(64);
 
         builder.Property(rt => rt.CreatedByIp)
             .HasColumnName("created_by_ip")
-            .HasMaxLength(45)
-            .IsRequired();
+            .HasMaxLength(45);
 
         builder.Property(rt => rt.UserId)
             .HasColumnName("user_id")
@@ -45,8 +43,9 @@ public class RefreshTokenConfiguration : IEntityTypeConfiguration<RefreshToken>
             .HasColumnName("created_at")
             .HasDefaultValueSql("NOW()");
 
-        builder.HasIndex(rt => rt.Token)
-            .HasDatabaseName("idx_refresh_tokens_token");
+        builder.HasIndex(rt => rt.TokenHash)
+            .IsUnique()
+            .HasDatabaseName("idx_refresh_tokens_token_hash");
 
         builder.HasIndex(rt => rt.UserId)
             .HasDatabaseName("idx_refresh_tokens_user_id");

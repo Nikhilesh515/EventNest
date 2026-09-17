@@ -59,6 +59,8 @@ builder.Services.AddHealthChecks()
 var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>()
     ?? ["http://localhost:5173", "https://localhost:5173"];
 
+builder.Services.Configure<CorsOptions>(opts => opts.AllowedOrigins = allowedOrigins);
+
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend", policy =>
@@ -66,7 +68,8 @@ builder.Services.AddCors(options =>
         policy.WithOrigins(allowedOrigins)
               .AllowAnyHeader()
               .AllowAnyMethod()
-              .AllowCredentials();
+              .AllowCredentials()
+              .WithExposedHeaders("X-Request-Id");
     });
 });
 
@@ -76,6 +79,7 @@ app.UseMiddleware<GatewayExceptionHandlerMiddleware>();
 app.UseMiddleware<RequestLoggingMiddleware>();
 app.UseMiddleware<RateLimitMiddleware>();
 
+app.UseMiddleware<CorsMiddleware>();
 app.UseCors("AllowFrontend");
 app.UseAuthentication();
 app.UseAuthorization();

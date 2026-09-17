@@ -4,25 +4,26 @@ namespace EventNest.AuthService.Domain.Entities;
 
 public class RefreshToken : BaseEntity
 {
-    public string Token { get; private set; } = string.Empty;
+    public string TokenHash { get; private set; } = string.Empty;
     public DateTime ExpiresAt { get; private set; }
-    public bool IsRevoked { get; private set; }
-    public string? RevokedByIp { get; private set; }
-    public string CreatedByIp { get; private set; } = string.Empty;
+    public DateTime? RevokedAt { get; private set; }
+    public string? ReplacedByTokenHash { get; private set; }
+    public string? CreatedByIp { get; private set; }
     public Guid UserId { get; private set; }
     public User User { get; private set; } = null!;
 
     public bool IsExpired => DateTime.UtcNow >= ExpiresAt;
+    public bool IsRevoked => RevokedAt.HasValue;
     public bool IsActive => !IsRevoked && !IsExpired;
 
     private RefreshToken() { }
 
-    public static RefreshToken Create(string token, DateTime expiresAt, string createdByIp, Guid userId)
+    public static RefreshToken Create(string tokenHash, DateTime expiresAt, string? createdByIp, Guid userId)
     {
         return new RefreshToken
         {
             Id = Guid.NewGuid(),
-            Token = token,
+            TokenHash = tokenHash,
             ExpiresAt = expiresAt,
             CreatedByIp = createdByIp,
             UserId = userId,
@@ -30,9 +31,9 @@ public class RefreshToken : BaseEntity
         };
     }
 
-    public void Revoke(string? revokedByIp)
+    public void Revoke(string? replacedByTokenHash = null)
     {
-        IsRevoked = true;
-        RevokedByIp = revokedByIp;
+        RevokedAt = DateTime.UtcNow;
+        ReplacedByTokenHash = replacedByTokenHash;
     }
 }
